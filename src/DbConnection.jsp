@@ -1,6 +1,6 @@
-<%@ page import="java.io.FileInputStream,java.io.IOException,java.util.Properties" %>
-<%@ page import="java.sql.Connection,java.sql.DriverManager,java.sql.SQLException" %>
-<%@ page import="java.nio.file.Path" %>
+<%@ page import="java.io.FileInputStream,java.io.IOException,java.sql.Connection" %>
+<%@ page import="java.sql.DriverManager,java.sql.SQLException,java.util.Properties" %>
+<%@ page import="java.sql.Statement, java.sql.ResultSet" %>
 
 <%
     Properties prop = new Properties();
@@ -21,6 +21,17 @@
         Class.forName("com.mysql.jdbc.Driver");
         conn = DriverManager.getConnection(url, username, password);
         out.println("<h1>SongSnapDB connection successful!</h1>");
+
+        out.println("Initial entry in table \"User\": <br/>");
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT * FROM User");
+        while (rs.next()) {
+            out.println("<p>" + "Id: " + rs.getInt(1) + "</br>Name: " + rs.getString(2) + "</br>Email: " + rs.getString(3) + "</br>Username: "
+                    + rs.getString(4) + "</br>Password: " + rs.getString(5) + "</p><br/>");
+        }
+        rs.close();
+        stmt.close();
+        conn.close();
 
         // Now you can use 'conn' for database operations
     } catch (IOException | ClassNotFoundException | SQLException e) {
