@@ -1,2 +1,4 @@
 # CS157A-Team8
-URL Link to DB Connection: http://localhost:8080/SongSnap/src/DbConnection.jsp
+To build the react container, run the command cd into the songsnap directory and excute the command`docker build -t <container_name> -f Dockerfile .`
+
+To run the react container, cd into the songsnap directory and execute the command `docker run -p 3000:3000 <container_name>`
