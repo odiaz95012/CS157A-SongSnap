@@ -1,0 +1,9 @@
+version: "3"
+services:
+  front-end:
+      build: ./songsnap
+      container_name: songsnap_frontend
+      ports: ['3000:3000'] 
+      volumes:
+        - ./songsnap:/app
+        - /app/node_modules

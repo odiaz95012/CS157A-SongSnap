@@ -1,6 +1,6 @@
 # CS157A-Team8
-To build the react container, run the command cd into the songsnap directory and excute the command
-  - `docker build -t <container_name> -f Dockerfile .`
+Steps to build the container:
+  - 1. Make sure you are in the project's root directory
+  - 2. Run the command `docker compose build`
+  - 3. Run the command `docker compose up`
 
-To run the react container, cd into the songsnap directory and execute the command 
-  - `docker run -p 3000:3000 <container_name>`
