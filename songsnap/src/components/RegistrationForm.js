@@ -3,19 +3,22 @@ import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
+import axios from 'axios';
 
 function RegistrationForm() {
     const [validated, setValidated] = useState(false);
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         const form = event.currentTarget;
         if (form.checkValidity() === false) {
-            event.preventDefault();
+            event.preventDefault(); // Prevent form submission if the form is invalid
             event.stopPropagation();
         }
 
         setValidated(true);
+        createAccount();
     };
+
 
     const [formData, setFormData] = useState({
         name: '',
@@ -25,11 +28,24 @@ function RegistrationForm() {
     })
 
     const handleChange = (e) => {
-        const {name, value} = e.target;
-        setFormData({...formData, [name]: value});
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
     }
 
-    
+    const createAccount = async () => {
+        await axios.post('http://localhost:9000/users/createAccount', {
+            name: formData.name,
+            username: formData.username,
+            email: formData.email,
+            password: formData.password
+        }).then((response) => {
+            console.log(response);
+        }).catch((err) => {
+            console.log(err);
+        })
+    }
+
+
     return (
         <Form noValidate validated={validated} onSubmit={handleSubmit}>
             <Row className="mb-3">

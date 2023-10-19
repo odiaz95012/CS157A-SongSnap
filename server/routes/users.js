@@ -55,6 +55,29 @@ router.post('/login', (req, res) => {
   });
 });
 
+router.post('/createAccount', (req, res) => {
+  const accountData = req.body;
+  if (
+    accountData.name &&
+    accountData.username &&
+    accountData.email &&
+    accountData.password
+  ) {
+    const query = "INSERT INTO users(name, username, email, password) " +
+      `VALUES('${accountData.name}','${accountData.username}','${accountData.email}','${accountData.password}')`
+
+    connection.query(query, (err) => {
+      if (err) {
+        console.log("Error executing the query:" + err);
+        res.status(500).send("Error creating the user");
+      }else{
+        res.status(200).json(accountData);
+      }
+    })
+  } else {
+    res.status(400).json({ error: 'Invalid data format' });
+  }
+})
 
 
 module.exports = router;
