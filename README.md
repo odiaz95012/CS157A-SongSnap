@@ -4,3 +4,7 @@ Steps to build the container:
   - 2. Run the command `docker compose build`
   - 3. Run the command `docker compose up`
 
+Our backend API endpoints are found within the server directory
+  - The routes sub-directory holds our different routes:
+    - The users.js file holds all of our user-related endpoints.
+    - The prompts.js filed holds our prompt-related endpoints.
