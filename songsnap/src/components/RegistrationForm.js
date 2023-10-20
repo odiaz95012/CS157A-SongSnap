@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
@@ -6,15 +7,16 @@ import Row from 'react-bootstrap/Row';
 import axios from 'axios';
 
 function RegistrationForm() {
+    const navigate = useNavigate();
     const [validated, setValidated] = useState(false);
 
+
     const handleSubmit = async (event) => {
+        event.preventDefault(); // Prevent form submission if the form is invalid
         const form = event.currentTarget;
         if (form.checkValidity() === false) {
-            event.preventDefault(); // Prevent form submission if the form is invalid
             event.stopPropagation();
         }
-
         setValidated(true);
         createAccount();
     };
@@ -33,6 +35,7 @@ function RegistrationForm() {
     }
 
     const createAccount = async () => {
+        console.log('EXECUTING POST REQUEST');
         await axios.post('http://localhost:9000/users/createAccount', {
             name: formData.name,
             username: formData.username,
@@ -40,6 +43,7 @@ function RegistrationForm() {
             password: formData.password
         }).then((response) => {
             console.log(response);
+            navigate('/'); // navigate to login on successful account creation
         }).catch((err) => {
             console.log(err);
         })
