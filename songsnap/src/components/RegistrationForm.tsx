@@ -8,7 +8,7 @@ import axios from 'axios';
 
 function RegistrationForm() {
     const navigate = useNavigate();
-    const [validated, setValidated] = useState(false);
+    const [validated, setValidated] = useState<boolean>(false);
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -42,7 +42,7 @@ function RegistrationForm() {
 
     const createAccount = async () => {
         try {
-            const response = await axios.post('http://localhost:9000/users/createAccount', {
+            const response = await axios.post('/users/createAccount', {
                 name: formData.name,
                 username: formData.username,
                 email: formData.email,
