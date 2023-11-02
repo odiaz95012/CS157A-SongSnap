@@ -7,17 +7,22 @@ import '../styles/LoginStyles.css';
 function Login() {
     const navigate = useNavigate();
 
-    const [formData, setFormData] = useState({
+    interface inputData {
+        username: string;
+        password: string;
+    }
+
+    const [formData, setFormData] = useState<inputData>({
         username: '',
         password: ''
     });
 
-    const handleDataChange = (e) => {
+    const handleDataChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
 
-    const login = async (event) => {
+    const login = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault(); // Prevent the default form submission behavior
         await axios.post('http://localhost:9000/users/login', {
             username: formData.username,
@@ -26,25 +31,34 @@ function Login() {
             navigate('/home');
         }).catch((err) => {
             console.log(err);
-            setAlert({ text: err.response.data.message, variant: "danger" })
+            setAlert({ text: err.response.data.message, variant: "danger" });
             handleAlert();
         });
     };
 
     const goToRegistration = () => {
         navigate("/registration");
+    };
+
+    interface Alert {
+        text: string;
+        variant: string;
     }
 
-    const [alert, setAlert] = useState(null);
+    const [alert, setAlert] = useState<Alert>({ text: '', variant: '' });
     const handleAlert = () => {
         const alertElem = document.getElementById('alert');
-        alertElem.style.visibility = 'visible';
-        // Automatically dismiss the alert after 3 seconds
-        setTimeout(() => {
-            setAlert(null);
-            alertElem.style.visibility = 'hidden';
-        }, 3000);
-    }
+        if (alertElem) {
+            alertElem.style.visibility = 'visible';
+            // Automatically dismiss the alert after 3 seconds
+            setTimeout(() => {
+                setAlert({ text: '', variant: '' });
+                if (alertElem) {
+                    alertElem.style.visibility = 'hidden';
+                }
+            }, 3000);
+        }
+    };
 
     return (
         <div>

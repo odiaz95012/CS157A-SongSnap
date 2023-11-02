@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
@@ -10,10 +10,9 @@ function RegistrationForm() {
     const navigate = useNavigate();
     const [validated, setValidated] = useState(false);
 
-
-    const handleSubmit = async (event) => {
-        event.preventDefault(); // Prevent form submission if the form is invalid
-        const form = event.currentTarget;
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const form = event.currentTarget as HTMLFormElement;
         if (form.checkValidity() === false) {
             event.stopPropagation();
         }
@@ -21,34 +20,40 @@ function RegistrationForm() {
         createAccount();
     };
 
+    interface inputData {
+        name: string;
+        username: string;
+        email: string;
+        password: string;
+    }
 
-    const [formData, setFormData] = useState({
+
+    const [formData, setFormData] = useState<inputData>({
         name: '',
         username: '',
         email: '',
         password: ''
-    })
+    });
 
-    const handleChange = (e) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
-    }
+    };
 
     const createAccount = async () => {
-        console.log('EXECUTING POST REQUEST');
-        await axios.post('http://localhost:9000/users/createAccount', {
-            name: formData.name,
-            username: formData.username,
-            email: formData.email,
-            password: formData.password
-        }).then((response) => {
+        try {
+            const response = await axios.post('http://localhost:9000/users/createAccount', {
+                name: formData.name,
+                username: formData.username,
+                email: formData.email,
+                password: formData.password
+            });
             console.log(response);
             navigate('/'); // navigate to login on successful account creation
-        }).catch((err) => {
+        } catch (err) {
             console.log(err);
-        })
-    }
-
+        }
+    };
 
     return (
         <Form noValidate validated={validated} onSubmit={handleSubmit}>
@@ -99,7 +104,6 @@ function RegistrationForm() {
             <div className='d-flex justify-content-center'>
                 <Button type="submit" className='mt-2'>Create Account</Button>
             </div>
-
         </Form>
     );
 }
