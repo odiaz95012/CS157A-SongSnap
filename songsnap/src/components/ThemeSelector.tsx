@@ -50,6 +50,7 @@ function ThemeSelector({ onThemeSelect }: ThemeSelectorProps) {
   return (
     <>
       <Form.Control as="select" className="me-sm-2" required onChange={handleThemeChange}>
+        <option value="">Select a theme</option> {/* Add this line */}
         {isThemesLoaded ? (
           themes.map((theme, index) => (
             <option key={`theme-${index}`} value={theme.Theme}>
@@ -58,6 +59,7 @@ function ThemeSelector({ onThemeSelect }: ThemeSelectorProps) {
           ))
         ) : null}
       </Form.Control>
+
       <Dropdown as={Form.Control.Feedback} type="invalid">
         <Dropdown.Toggle variant="primary" id="dropdown-basic">
           Profile

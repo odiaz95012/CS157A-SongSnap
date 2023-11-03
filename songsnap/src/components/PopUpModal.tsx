@@ -10,6 +10,7 @@ interface ModalProps {
     submitButtonText: string;
     openButtonText: string;
     functionToExecute?: Function;
+    onFormSubmit?: (formData: SongSnapInputData) => void;
 }
 interface SongSnapInputData {
     songName: string;
@@ -18,7 +19,7 @@ interface SongSnapInputData {
     privacy: string;
 }
 
-function PopUpModal({ title, body, submitButtonText, openButtonText, functionToExecute }: ModalProps) {
+function PopUpModal({ title, body, submitButtonText, openButtonText, functionToExecute, onFormSubmit }: ModalProps) {
   const [show, setShow] = useState<boolean>(false);
 
   const handleClose = () => setShow(false);
@@ -50,7 +51,7 @@ function PopUpModal({ title, body, submitButtonText, openButtonText, functionToE
           <Button variant="secondary" onClick={handleClose}>
             Close
           </Button>
-          <Button type="submit" variant="primary" onClick={handleSubmission}>
+          <Button type='submit' variant="primary" onClick={handleSubmission}>
             {submitButtonText}
           </Button>
         </Modal.Footer>

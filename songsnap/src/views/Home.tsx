@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../styles/HomeStyles.css';
 import NavBar from '../components/NavBar';
 import axios, { AxiosRequestConfig } from 'axios';
-import SongSnapPlayer from './SongSnapPlayer';
+import SongSnapPlayer from '../components/SongSnapPlayer';
 import PopUpModal from '../components/PopUpModal';
 import SongSnapForm from '../components/SongSnapForm';
 
@@ -33,34 +33,32 @@ function Home() {
         }
     };
 
-    const getSongID = async (songName: string): Promise<number | void> => {
+    const getSongID = async (songName: string, artistName: string): Promise<number | void> => {
         try {
             const response = await axios.request({
                 ...options,
-                params: { q: songName }, // Set the artist name as a parameter
+                params: {
+                    q: `${songName} ${artistName}`, // Set the song and artist name as a parameter
+                },
             });
             console.log(response.data);
-            if(response.data) {
-                response.data.data.forEach((song: any) => {
-                    
-                });
-            }
             setSongID(response.data.data[0].id);
             return response.data.data[0].id;
         } catch (error) {
             console.error(error);
         }
-    }
+    };
 
-    const generatePlayer = async (songName: string): Promise<JSX.Element | void> => {
+
+    const generatePlayer = async (songName: string, artistName: string, backgroundTheme: string): Promise<JSX.Element | void> => {
         // Set isLoading to true when generating the player
         setIsLoading(true);
 
         try {
-            const trackID = await getSongID(songName);
+            const trackID = await getSongID(songName, artistName);
             console.log(trackID)
             if (trackID) {
-                const player = <SongSnapPlayer dztype="dzplayer" trackID={trackID} />;
+                const player = <SongSnapPlayer dztype="dzplayer" trackID={trackID} backgroundTheme={backgroundTheme} />;
                 setSongSnapPlayer(player);
 
             }
@@ -72,8 +70,8 @@ function Home() {
 
 
 
-    const handleSearchClick = () => {
-        generatePlayer(songName);
+    const generateSongSnap = (songName: string, artistName: string, backgroundTheme: string) => {
+        generatePlayer(songName, artistName, backgroundTheme);
         setPlayerVisible(true);
     };
 
@@ -83,16 +81,28 @@ function Home() {
         backgroundTheme: string;
         privacy: string;
     }
-    const handleSongSnapUpload = (formData:SongSnapInputData) => {
-        // Do something with the form data, e.g., send it to an API or update the state
-        console.log('Form data:', formData);
-      };
-    
 
-    
+    const [songSnapData, setSongSnapData] = useState<SongSnapInputData>({
+        songName: '',
+        artistName: '',
+        backgroundTheme: '',
+        privacy: ''
+    });
+
+    const handleSongSnapUpload = (formData: SongSnapInputData) => {
+        // Do something with the form data, e.g., send it to an API or update the state
+        setSongSnapData(formData);
+    };
+
+    useEffect(() => {
+        console.log(songSnapData);
+    }, [songSnapData]);
+
+
+
 
     return (
-        <div className='overflow-none'>
+        <div className='overflow-x-hidden overflow-y-auto'>
             <NavBar />
             <header className="bg-dark py-5">
                 <div className="container px-5">
@@ -102,13 +112,13 @@ function Home() {
                                 <h1 className="display-5 fw-bolder text-white mb-2">Prompt of the Day</h1>
                                 <p className="lead text-white-50 mb-4">INSERT PROMPT HERE</p>
                                 <div className="d-grid gap-4 d-sm-flex justify-content-sm-center">
-                                    <PopUpModal 
-                                        title='Create a SongSnap' 
-                                        body={<SongSnapForm onFormSubmit={handleSongSnapUpload}/>}
-                                        submitButtonText='Publish SongSnap' 
+                                    <PopUpModal
+                                        title='Create a SongSnap'
+                                        body={<SongSnapForm onFormSubmit={handleSongSnapUpload} />}
+                                        submitButtonText='Publish SongSnap'
                                         openButtonText='Create SongSnap'
-                                        functionToExecute={generatePlayer}
-                                        />
+                                        functionToExecute={() => generateSongSnap(songSnapData.songName, songSnapData.artistName, songSnapData.backgroundTheme)}
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -152,34 +162,25 @@ function Home() {
                 </div>
             </div>
 
-            <div className="container text-start mb-6">
+            <div className="container text-center d-flex justify-content-center align-items-center h-100">
                 {/* Main Feed View */}
                 <div id="main-feed" className={`view ${activeView === 'main-feed' ? 'active-view' : ''}`}>
-                    <div className="container justify-content-center overflow-auto text-center">
+                    <div className="container text-center">
                         <h1>Main Feed</h1>
                         {/* Add main feed content here */}
                         <div className='row'>
-                            <div className='col-md-12'>
-                                <div className='form-outline'>
-                                    <input type='text' className='form-control' name="songName" id="songName" onChange={handleSongName} />
-                                    <label htmlFor='songName' className='form-label'>Song Name</label>
-                                </div>
-                                <button type='button' className='btn btn-primary' onClick={handleSearchClick}>Search</button>
-                            </div>
-                        </div>
-                        <div className='row'>
-                            <div className='container overflow-auto'>
+                            <div className='container'>
                                 <div className='col-md-12 my-4'>
-                                    {isPlayerVisible && (
-                                        // Display the player when isPlayerVisible is true
+                                    {isPlayerVisible ? (
+                                        /* Display the player when isPlayerVisible is true */
                                         isLoading ? (
-                                            // Display a loading message while isLoading is true
+                                            /* Display a loading message while isLoading is true */
                                             <p>Loading...</p>
                                         ) : (
-                                            // Display the player when isLoading is false
+                                            /* Display the player when isLoading is false */
                                             songSnapPlayer
                                         )
-                                    )}
+                                    ) : null}
                                 </div>
                             </div>
                         </div>
@@ -194,6 +195,7 @@ function Home() {
                     </div>
                 </div>
             </div>
+
         </div>
     );
 }
