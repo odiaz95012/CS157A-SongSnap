@@ -92,7 +92,7 @@ function Home() {
     
 
     return (
-        <div className='overflow-auto'>
+        <div className='overflow-none'>
             <NavBar />
             <header className="bg-dark py-5">
                 <div className="container px-5">

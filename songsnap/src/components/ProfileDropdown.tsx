@@ -8,7 +8,8 @@ function ProfileDropdown() {
         Profile
       </Dropdown.Toggle>
       <Dropdown.Menu>
-        <Dropdown.Item href="#/action-1">View Profile</Dropdown.Item>
+        <Dropdown.Item href="/profile">View Profile</Dropdown.Item>
+        <Dropdown.Item href="/settings">Settings</Dropdown.Item>
         <Dropdown.Item href="#/action-2">Log Out</Dropdown.Item>
       </Dropdown.Menu>
     </Dropdown>
