@@ -16,7 +16,7 @@ function ThemeSelector({ onThemeSelect }: ThemeSelectorProps) {
 
   const fetchThemes = async () => {
     try {
-      const response = await axios.get('http://localhost:9000/themes');
+      const response = await axios.get('/themes');
       const data = await response.data;
       setThemes(data);
     } catch (err) {

@@ -3,6 +3,8 @@ import '../styles/HomeStyles.css';
 import NavBar from '../components/NavBar';
 import axios, { AxiosRequestConfig } from 'axios';
 import SongSnapPlayer from './SongSnapPlayer';
+import PopUpModal from '../components/PopUpModal';
+import SongSnapForm from '../components/SongSnapForm';
 
 function Home() {
     const [activeView, setActiveView] = useState<string>('main-feed');
@@ -37,6 +39,12 @@ function Home() {
                 ...options,
                 params: { q: songName }, // Set the artist name as a parameter
             });
+            console.log(response.data);
+            if(response.data) {
+                response.data.data.forEach((song: any) => {
+                    
+                });
+            }
             setSongID(response.data.data[0].id);
             return response.data.data[0].id;
         } catch (error) {
@@ -69,6 +77,20 @@ function Home() {
         setPlayerVisible(true);
     };
 
+    interface SongSnapInputData {
+        songName: string;
+        artistName: string;
+        backgroundTheme: string;
+        privacy: string;
+    }
+    const handleSongSnapUpload = (formData:SongSnapInputData) => {
+        // Do something with the form data, e.g., send it to an API or update the state
+        console.log('Form data:', formData);
+      };
+    
+
+    
+
     return (
         <div className='overflow-auto'>
             <NavBar />
@@ -80,7 +102,13 @@ function Home() {
                                 <h1 className="display-5 fw-bolder text-white mb-2">Prompt of the Day</h1>
                                 <p className="lead text-white-50 mb-4">INSERT PROMPT HERE</p>
                                 <div className="d-grid gap-4 d-sm-flex justify-content-sm-center">
-                                    <button className="btn btn-primary">Upload SongSnap</button>
+                                    <PopUpModal 
+                                        title='Create a SongSnap' 
+                                        body={<SongSnapForm onFormSubmit={handleSongSnapUpload}/>}
+                                        submitButtonText='Publish SongSnap' 
+                                        openButtonText='Create SongSnap'
+                                        functionToExecute={generatePlayer}
+                                        />
                                 </div>
                             </div>
                         </div>

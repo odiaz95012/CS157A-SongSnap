@@ -24,7 +24,7 @@ function Login() {
 
     const login = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault(); // Prevent the default form submission behavior
-        await axios.post('http://localhost:9000/users/login', {
+        await axios.post('/users/login', {
             username: formData.username,
             password: formData.password
         }).then(() => {
