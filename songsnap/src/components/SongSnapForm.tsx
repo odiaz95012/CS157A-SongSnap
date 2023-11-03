@@ -42,7 +42,6 @@ function SongSnapForm({ onFormSubmit }: SongSnapFormProps) {
         if (form.checkValidity() === false) {
             event.stopPropagation();
         } else {
-
             onFormSubmit(formData); // Call the callback with the form data
             setValidated(true);
         }
@@ -53,9 +52,6 @@ function SongSnapForm({ onFormSubmit }: SongSnapFormProps) {
         setFormData({ ...formData, [name]: value });
     };
 
-    // useEffect(() => {
-    //     console.log(formData)
-    // }, [formData]);
 
     return (
         <Form noValidate validated={validated} onSubmit={handleSubmit}>
@@ -90,17 +86,20 @@ function SongSnapForm({ onFormSubmit }: SongSnapFormProps) {
             <Row className="mb-3">
                 <Form.Group as={Col} md="6" controlId="validationCustom03">
                     <Form.Label className='h6'>Background Theme</Form.Label>
-                    <ThemeSelector onThemeSelect={handleThemeSelection}/>
+                    <ThemeSelector onThemeSelect={handleThemeSelection} />
                 </Form.Group>
                 <Form.Group as={Col} md="6" controlId="validationCustom04">
                     <Form.Label className='h6'>Privacy</Form.Label>
-                    <CheckBox numRadios={2} radioLabels={['Public', 'Friends Only']} onRadioSelect={handlePrivacySelection}/>
+                    <CheckBox numRadios={2} radioLabels={['Public', 'Friends Only']} onRadioSelect={handlePrivacySelection} />
                     {/* <Form.Control type="password" placeholder="Password" name="password" required /> */}
                     <Form.Control.Feedback type="invalid">
                         Please choose a privacy setting, either public or friends only.
                     </Form.Control.Feedback>
                 </Form.Group>
             </Row>
+            <div className='d-flex justify-content-center'>
+                <Button type="submit" variant="primary">Set Details</Button>
+            </div>
 
         </Form>
     )
