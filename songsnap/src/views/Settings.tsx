@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import NavBar from "../components/NavBar";
+import Cookies from 'js-cookie';
+import { get } from 'http';
 
 function Settings() {
     // useEffect(() => {
@@ -14,6 +16,11 @@ function Settings() {
     const profileImage = {
         width: '100%'
     };
+    const getCookie = (name: string) => {
+        return Cookies.get(name);
+    }
+
+    console.log(getCookie('userID'));
 
     return (
         <>
