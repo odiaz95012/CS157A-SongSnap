@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PopUpAlert from '../components/PopUpAlert';
 import '../styles/LoginStyles.css';
+import Cookies from 'js-cookie';
 
 function Login() {
     const navigate = useNavigate();
@@ -27,7 +28,9 @@ function Login() {
         await axios.post('/users/login', {
             username: formData.username,
             password: formData.password
-        }).then(() => {
+        }).then((response) => {
+            Cookies.set('userID', response.data.id);
+            console.log(response);
             navigate('/home');
         }).catch((err) => {
             console.log(err);

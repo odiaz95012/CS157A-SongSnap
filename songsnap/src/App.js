@@ -9,16 +9,7 @@ import Profile from "./views/Profile";
 import Cookies from 'js-cookie';
 
 function App() {
-    // Cookie reading is not working as of now
-    // useEffect(() => {
-    //     // Reading a specific cookie
-    //     const cookieValue = Cookies.get('login');
-    //     console.log('Value of "yourCookieName" cookie:', cookieValue);
-    //
-    //     // Reading all cookies
-    //     const allCookies = Cookies.get();
-    //     console.log('All cookies:', allCookies);
-    // }, []);
+    //Cookie reading is not working as of now
 
   return (
     <Router>
