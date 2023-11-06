@@ -117,7 +117,7 @@ router.post('/friend-requests/create', (req, res) => {
     connection.query(query, [requestData.user1, requestData.user2, 'Pending', currentDate], (err, results) => {
       if (err) {
         console.log("Error executing the query: " + err);
-        return res.status(500).json({ error: "Error creating friend request" });
+        return res.status(500).json({ error: "000PS! Something happened :(" });
       } else {
         return res.status(200).json({ message: "Friend request created successfully" });
       }
@@ -163,7 +163,7 @@ router.post('/friend-requests/respond', (req, res) => {
     connection.query(query, [requestData.decision, requestData.user1id, requestData.user2id], (err, results) => {
       if (err) {
         console.log("Error executing the query: " + err);
-        return res.status(500).json({ error: 'OOOPS! Something happened :(' });
+        return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
       } else {
         return res.status(200).json({ message: "Response submitted" });
       }
@@ -173,5 +173,50 @@ router.post('/friend-requests/respond', (req, res) => {
   }
 });
 
+router.post('/friends/remove', (req, res) => {
+  const requestData = req.body;
+  if (requestData.user1id && requestData.user2id) {
+    const query = "UPDATE friends SET Status = 'Rejected' WHERE User1ID = ? AND User2ID = ? AND Status = 'Accepted'";
+    connection.query(query, [requestData.user1id, requestData.user2id], (err, results) => {
+      if (err) {
+        console.log("Error executing the query: " + err);
+        return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
+      } else {
+        return res.status(200).json({ message: "Response submitted" });
+      }
+    });
+  } else {
+    return res.status(400).json({ error: 'Invalid data format' });
+  }
+});
+
+router.get('/friends/all', (req, res) => {
+  const id = req.query.id;
+
+  if (id) {
+    const query = `
+      SELECT friends.User1ID, friends.Date, users.name, users.username
+      FROM friends, users
+      WHERE (friends.User1ID = ? OR friends.User2ID = ?)
+      AND friends.Status = 'Accepted'
+      AND (friends.User1ID = users.id OR friends.User2ID = users.id)
+      AND users.id != ?
+    `;
+    connection.query(query, [id, id, id], (err, results) => {
+      if (err) {
+        console.log("Error executing the query: " + err);
+        return res.status(500).json({ error: "OO0OPS! Something happened :(" });
+      } else {
+        if (results.length > 0) {
+          return res.status(200).json(results);
+        } else {
+          return res.status(404).json({ message: 'No friends on songsnap!' });
+        }
+      }
+    });
+  } else {
+    return res.status(400).json({ error: 'Invalid data format' });
+  }
+});
 
 module.exports = router;
