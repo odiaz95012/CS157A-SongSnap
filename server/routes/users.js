@@ -79,5 +79,78 @@ router.post('/createAccount', (req, res) => {
   }
 })
 
+router.get('/findUser', (req, res) => {
+  const searchTerm = req.query.searchTerm;
+
+  if (searchTerm) {
+    const query = `
+      SELECT name, username, email
+      FROM users
+      WHERE username = ? OR email = ?
+    `;
+
+    connection.query(query, [searchTerm, searchTerm], (err, results) => {
+      if (err) {
+        console.log("Error executing the query: " + err);
+        return res.status(500).json({ error: "Error fetching users" });
+      } else {
+        if (results.length > 0) {
+          return res.status(200).json(results);
+        } else {
+          return res.status(404).json({ message: 'No users found matching the search term' });
+        }
+      }
+    });
+  } else {
+    return res.status(400).json({ error: 'Invalid search term' });
+  }
+});
+
+
+router.post('/createRequest', (req, res) => {
+  const requestData = req.body;
+  if (requestData.user1 && requestData.user2) {
+    const query = "INSERT INTO friends (User1ID, User2ID, Status, Date) VALUES (?, ?, ?, ?)";
+    const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' '); // Format the date
+
+    connection.query(query, [requestData.user1, requestData.user2, 'Pending', currentDate], (err, results) => {
+      if (err) {
+        console.log("Error executing the query: " + err);
+        return res.status(500).json({ error: "Error creating friend request" });
+      } else {
+        return res.status(200).json({ message: "Friend request created successfully" });
+      }
+    });
+  } else {
+    return res.status(400).json({ error: 'Invalid data format' });
+  }
+});
+
+router.get('/friendRequests', (req, res) => {
+  const id = req.query.id;
+
+  if (id) {
+    const query = `
+      SELECT User1ID, Status, Date
+      FROM friends
+      WHERE User2ID = ?
+    `;
+
+    connection.query(query, [id], (err, results) => {
+      if (err) {
+        console.log("Error executing the query: " + err);
+        return res.status(500).json({ error: "Error fetching requests" });
+      } else {
+        if (results.length > 0) {
+          return res.status(200).json(results);
+        } else {
+          return res.status(404).json({ message: 'No friend requests at this time' });
+        }
+      }
+    });
+  } else {
+    return res.status(400).json({ error: 'Invalid search term' });
+  }
+});
 
 module.exports = router;
