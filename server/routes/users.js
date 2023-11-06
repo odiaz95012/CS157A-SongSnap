@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const connection = require('../db');
+const {request} = require("express");
 
 
 //get all users
@@ -107,7 +108,7 @@ router.get('/findUser', (req, res) => {
 });
 
 
-router.post('/createRequest', (req, res) => {
+router.post('/friend-requests/create', (req, res) => {
   const requestData = req.body;
   if (requestData.user1 && requestData.user2) {
     const query = "INSERT INTO friends (User1ID, User2ID, Status, Date) VALUES (?, ?, ?, ?)";
@@ -126,7 +127,7 @@ router.post('/createRequest', (req, res) => {
   }
 });
 
-router.get('/friendRequests', (req, res) => {
+router.get('/friend-requests/all', (req, res) => {
   const id = req.query.id;
 
   if (id) {
@@ -155,6 +156,22 @@ router.get('/friendRequests', (req, res) => {
   }
 });
 
+router.post('/friend-requests/respond', (req, res) => {
+  const requestData = req.body;
+  if (requestData.user1id && requestData.user2id && (requestData.decision === 'Accepted' || requestData.decision === 'Rejected')) {
+    const query = "UPDATE friends SET Status = ? WHERE User1ID = ? AND User2ID = ? AND Status = 'Pending'";
+    connection.query(query, [requestData.decision, requestData.user1id, requestData.user2id], (err, results) => {
+      if (err) {
+        console.log("Error executing the query: " + err);
+        return res.status(500).json({ error: 'OOOPS! Something happened :(' });
+      } else {
+        return res.status(200).json({ message: "Response submitted" });
+      }
+    });
+  } else {
+    return res.status(400).json({ error: 'Invalid data format' });
+  }
+});
 
 
 module.exports = router;
