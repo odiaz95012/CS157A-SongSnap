@@ -131,9 +131,11 @@ router.get('/friendRequests', (req, res) => {
 
   if (id) {
     const query = `
-      SELECT User1ID, Status, Date
-      FROM friends
-      WHERE User2ID = ?
+      SELECT friends.User1ID, friends.Date, users.name, users.username
+      FROM friends, users
+      WHERE friends.User1ID = users.id 
+      AND friends.User2ID = ? 
+      AND friends.Status = 'Pending'
     `;
 
     connection.query(query, [id], (err, results) => {
@@ -149,8 +151,10 @@ router.get('/friendRequests', (req, res) => {
       }
     });
   } else {
-    return res.status(400).json({ error: 'Invalid search term' });
+    return res.status(400).json({ error: 'OOOPS! Something happened :(' });
   }
 });
+
+
 
 module.exports = router;
