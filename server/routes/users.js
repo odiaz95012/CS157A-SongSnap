@@ -18,18 +18,23 @@ router.get('/', (req, res) => {
 });
 
 //get user by id
-router.get('/id/:id', (req, res) => {
-  const id = req.params.id; // Retrieve the 'id' parameter from the URL
+router.get('/id', (req, res) => {
+  const id = req.query.id; // Retrieve the 'id' parameter from the query string
+  if (!id) {
+    return res.status(400).send('No ID provided');
+  }
+
   const query = `SELECT * FROM users WHERE ID = ${id}`;
   connection.query(query, (err, results) => {
     if (err) {
       console.error('Error executing the query: ' + err);
       res.status(500).send('Error retrieving data');
     } else {
-      res.json(results);
+      res.json(results[0]);
     }
   });
 });
+
 
 //Logs user into system
 router.post('/login', (req, res) => {

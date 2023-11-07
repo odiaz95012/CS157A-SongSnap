@@ -1,24 +1,55 @@
-import React, { useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import NavBar from "../components/NavBar";
 import Cookies from 'js-cookie';
 import { get } from 'http';
+import {Container} from "react-bootstrap";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+import axios from 'axios';
 
 function Settings() {
-    // useEffect(() => {
-    //     const cookies = document.cookie;
-    //     console.log('All cookies:', cookies);
-    //
-    //     // Retrieve a specific cookie by name
-    //     const specificCookie = cookies('login');
-    //     console.log('Value of "yourCookieName" cookie:', specificCookie);
-    // }, []);
+    const [userData, setUserData] = useState(null);
+    const [friendRequests, setFriendRequests] = useState(null);
+    const [userFriends, setUserFriends] = useState(null);
+    const getCookie = (name: string) => {
+        return Cookies.get(name);
+    }
+
+    const userID = 1;
+    useEffect(() => {
+        // get user id from cookie
+
+        // Fetch user data
+        axios.get('/users/id?id=' + userID)
+            .then(response => {
+                setUserData(response.data); // Assuming the data retrieved is directly stored in response.data
+            })
+            .catch(error => {
+                console.error("Error fetching user data:", error);
+            });
+
+        // Fetch friend requests
+        axios.get('/users/friend-requests/all?id=' + userID)
+            .then(response => {
+                setFriendRequests(response.data); // Assuming the data retrieved is directly stored in response.data
+            })
+            .catch(error => {
+                console.error("Error fetching friend requests:", error);
+            });
+
+        // Fetch user's friends
+        axios.get('/users/friends/all?id=' + userID)
+            .then(response => {
+                setUserFriends(response.data); // Assuming the data retrieved is directly stored in response.data
+            })
+            .catch(error => {
+                console.error("Error fetching user's friends:", error);
+            });
+    }, []);
 
     const profileImage = {
         width: '100%'
     };
-    const getCookie = (name: string) => {
-        return Cookies.get(name);
-    }
 
     console.log(getCookie('userID'));
 
@@ -35,7 +66,7 @@ function Settings() {
                         <button className='nav-link' id='profile-tab' data-bs-toggle='tab' data-bs-target='#profile-tab-pane' type='button' role='tab' aria-controls='profile-tab-pane' aria-selected='false'>Profile</button>
                     </li>
                     <li className='nav-item' role='presentation'>
-                        <button className='nav-link' id='contact-tab' data-bs-toggle='tab' data-bs-target='#contact-tab-pane' type='button' role='tab' aria-controls='contact-tab-pane' aria-selected='false'>Contact</button>
+                        <button className='nav-link' id='friends-tab' data-bs-toggle='tab' data-bs-target='#friends-tab-pane' type='button' role='tab' aria-controls='friends-tab-pane' aria-selected='false'>Friends</button>
                     </li>
                     <li className='nav-item' role='presentation'>
                         <button className='nav-link' id='disabled-tab' data-bs-toggle='tab' data-bs-target='#disabled-tab-pane' type='button' role='tab' aria-controls='disabled-tab-pane' aria-selected='false' disabled>Disabled</button>
@@ -75,7 +106,31 @@ function Settings() {
                         </div>
                     </div>
                     <div className='tab-pane fade' id='profile-tab-pane' role='tabpanel' aria-labelledby='profile-tab' tabIndex={0}>2</div>
-                    <div className='tab-pane fade' id='contact-tab-pane' role='tabpanel' aria-labelledby='contact-tab' tabIndex={0}>3</div>
+                    <div className='tab-pane fade' id='friends-tab-pane' role='tabpanel' aria-labelledby='friends-tab' tabIndex={0}>
+                        <Container className="bg-light rounded-4 p-3 mt-3">
+                            <Row>
+                                <Col xs="12" lg="6">
+                                    <h1 className="fw-bold">Friend Management</h1>
+                                </Col>
+                                <Col xs="12" lg="3">
+                                    <h2 className="fw-bold fs-1 text-secondary text-center">3 Requests</h2>
+                                </Col>
+                                <Col xs="12" lg="3">
+                                    <h2 className="fw-bold fs-1 text-secondary text-center">6 Friends</h2>
+                                </Col>
+                            </Row>
+                        </Container>
+                        <Container className="mt-4">
+                            <Row>
+                                <Col xs={12} lg={6}>
+                                    <h4 className="fw-bold text-center">Requests</h4>
+                                </Col>
+                                <Col xs={12} lg={6}>
+                                    <h4 className="fw-bold text-center">Friends</h4>
+                                </Col>
+                            </Row>
+                        </Container>
+                    </div>
                     <div className='tab-pane fade' id='disabled-tab-pane' role='tabpanel' aria-labelledby='disabled-tab' tabIndex={0}>4</div>
                 </div>
             </div>
