@@ -219,4 +219,65 @@ router.get('/friends/all', (req, res) => {
   }
 });
 
+router.get('/blocked-users/all', (req, res) => {
+  const id = req.query.id;
+
+  if (id) {
+    const query = `
+      SELECT blocked.User2ID, users.name, users.username
+      FROM blocked, users
+      WHERE blocked.User1ID = ? AND blocked.User2ID = users.id;
+    `;
+
+    connection.query(query, [id], (err, results) => {
+      if (err) {
+        console.log("Error executing the query: " + err);
+        return res.status(500).json({ error: "OO0OPS! Something happened :(" });
+      } else {
+        if (results.length > 0) {
+          return res.status(200).json(results);
+        } else {
+          return res.status(404).json({ message: 'No blocked users' });
+        }
+      }
+    });
+  } else {
+    return res.status(400).json({ error: 'Invalid data format' });
+  }
+});
+
+router.post('/blocked-users/create', (req, res) => {
+  const requestData = req.body;
+  if (requestData.user1 && requestData.user2 && requestData.user1 !== requestData.user2) {
+    const selectQuery = "SELECT * FROM blocked WHERE (User1ID = ? AND User2ID = ?) OR (User1ID = ? AND User2ID = ?)";
+    const insertQuery = "INSERT INTO blocked (User1ID, User2ID) VALUES (?, ?)";
+
+    connection.query(selectQuery, [requestData.user1, requestData.user2, requestData.user2, requestData.user1], (selectErr, selectResults) => {
+      if (selectErr) {
+        console.log("Error executing the select query: " + selectErr);
+        return res.status(500).json({ error: "Oops! Something happened :(" });
+      }
+
+      if (selectResults.length > 0) {
+        // Entry already exists, return a message or status
+        return res.status(200).json({ message: "Entry already exists" });
+      } else {
+        // Entry does not exist, perform the INSERT operation
+        connection.query(insertQuery, [requestData.user1, requestData.user2], (insertErr, insertResults) => {
+          if (insertErr) {
+            console.log("Error executing the insert query: " + insertErr);
+            return res.status(500).json({ error: "Oops! Something happened :(" });
+          } else {
+            return res.status(200).json({ message: "User has been blocked" });
+          }
+        });
+      }
+    });
+  } else {
+    return res.status(400).json({ error: 'Invalid data format' });
+  }
+});
+
+
+
 module.exports = router;
