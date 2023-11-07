@@ -5,10 +5,13 @@ const cookieParser = require('cookie-parser');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var promptsRouter = require('./routes/prompts');
+var postsRouter = require('./routes/posts');
 
 var app = express();
 app.use(cors());
 app.use(cookieParser());
+
+
 
 app.set('view engine', 'jade');
 
@@ -19,6 +22,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/prompts', promptsRouter);
+app.use('/posts', postsRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

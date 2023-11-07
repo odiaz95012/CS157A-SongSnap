@@ -4,6 +4,7 @@ const connection = require('../db');
 const {request} = require("express");
 
 
+
 //get all users
 router.get('/', (req, res) => {
   const query = "SELECT * FROM users";
@@ -50,12 +51,13 @@ router.post('/login', (req, res) => {
     } else {
       if (results.length === 1) {
         // User is authenticated
-        res.cookie('login', { username: results[0].Username, id: results[0].ID, date: new Date()}, { secure: true, httpOnly: true });
+        // Set the cookie with serialized JSON data
+        res.cookie('login', JSON.stringify({ username: results[0].Username, id: results[0].ID, date: new Date() }), { secure: true, httpOnly: true });
         res.json({ message: 'Login successful', username: results[0].Username, id: results[0].ID, date: new Date() });
       } else {
         // User not found or invalid credentials
         res.clearCookie('login');
-        res.status(401).json({ message: `OOOPS! Something happened` });
+        res.status(401).json({ message: `Incorrect password, please try again.` });
       }
     }
   });
@@ -69,21 +71,22 @@ router.post('/createAccount', (req, res) => {
     accountData.email &&
     accountData.password
   ) {
-    const query = "INSERT INTO users(name, username, email, password) " +
-      `VALUES('${accountData.name}','${accountData.username}','${accountData.email}','${accountData.password}')`
+    const query = "INSERT INTO users (name, username, email, password) VALUES (?, ?, ?, ?)";
+    const values = [accountData.name, accountData.username, accountData.email, accountData.password];
 
-    connection.query(query, (err) => {
+    connection.query(query, values, (err) => {
       if (err) {
         console.log("Error executing the query:" + err);
         res.status(500).send("Error creating the user");
-      }else{
+      } else {
         res.status(200).json(accountData);
       }
-    })
+    });
   } else {
     res.status(400).json({ error: 'Invalid data format' });
   }
-})
+});
+
 
 router.get('/findUser', (req, res) => {
   const searchTerm = req.query.searchTerm;

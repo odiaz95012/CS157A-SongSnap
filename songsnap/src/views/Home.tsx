@@ -50,7 +50,7 @@ function Home() {
     };
 
 
-    const generatePlayer = async (songName: string, artistName: string, backgroundTheme: string): Promise<JSX.Element | void> => {
+    const generatePlayer = async (songName: string, artistName: string, backgroundTheme: string, caption: string): Promise<JSX.Element | void> => {
         // Set isLoading to true when generating the player
         setIsLoading(true);
 
@@ -58,7 +58,7 @@ function Home() {
             const trackID = await getSongID(songName, artistName);
             console.log(trackID)
             if (trackID) {
-                const player = <SongSnapPlayer dztype="dzplayer" trackID={trackID} backgroundTheme={backgroundTheme} />;
+                const player = <SongSnapPlayer dztype="dzplayer" trackID={trackID} backgroundTheme={backgroundTheme} caption={caption}/>;
                 setSongSnapPlayer(player);
 
             }
@@ -70,8 +70,8 @@ function Home() {
 
 
 
-    const generateSongSnap = (songName: string, artistName: string, backgroundTheme: string) => {
-        generatePlayer(songName, artistName, backgroundTheme);
+    const generateSongSnap = (songName: string, artistName: string, backgroundTheme: string, caption:string) => {
+        generatePlayer(songName, artistName, backgroundTheme, caption);
         setPlayerVisible(true);
     };
 
@@ -80,13 +80,16 @@ function Home() {
         artistName: string;
         backgroundTheme: string;
         privacy: string;
+        caption:string
     }
 
     const [songSnapData, setSongSnapData] = useState<SongSnapInputData>({
         songName: '',
         artistName: '',
         backgroundTheme: '',
-        privacy: ''
+        privacy: '',
+        caption: ''
+        
     });
 
     const handleSongSnapUpload = (formData: SongSnapInputData) => {
@@ -117,7 +120,7 @@ function Home() {
                                         body={<SongSnapForm onFormSubmit={handleSongSnapUpload} />}
                                         submitButtonText='Publish SongSnap'
                                         openButtonText='Create SongSnap'
-                                        functionToExecute={() => generateSongSnap(songSnapData.songName, songSnapData.artistName, songSnapData.backgroundTheme)}
+                                        functionToExecute={() => generateSongSnap(songSnapData.songName, songSnapData.artistName, songSnapData.backgroundTheme, songSnapData.caption)}
                                     />
                                 </div>
                             </div>
@@ -162,7 +165,7 @@ function Home() {
                 </div>
             </div>
 
-            <div className="container text-center d-flex justify-content-center align-items-center h-100">
+            <div className="container overflow-auto text-center d-flex justify-content-center align-items-center h-100 feed-container my-3">
                 {/* Main Feed View */}
                 <div id="main-feed" className={`view ${activeView === 'main-feed' ? 'active-view' : ''}`}>
                     <div className="container text-center">
@@ -189,9 +192,25 @@ function Home() {
 
                 {/* Friends Feed View */}
                 <div id="friends-feed" className={`view ${activeView === 'friends-feed' ? 'active-view' : ''}`}>
-                    <div className="container">
+                    <div className="container text-center">
                         <h1>Friends Feed</h1>
                         {/* Add friends feed content here */}
+                        <div className='row'>
+                            <div className='container'>
+                                <div className='col-md-12 my-4'>
+                                    {isPlayerVisible ? (
+                                        /* Display the player when isPlayerVisible is true */
+                                        isLoading ? (
+                                            /* Display a loading message while isLoading is true */
+                                            <p>Loading...</p>
+                                        ) : (
+                                            /* Display the player when isLoading is false */
+                                            songSnapPlayer
+                                        )
+                                    ) : null}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

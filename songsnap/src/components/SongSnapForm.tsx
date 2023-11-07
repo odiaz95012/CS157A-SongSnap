@@ -11,6 +11,7 @@ interface SongSnapInputData {
     artistName: string;
     backgroundTheme: string;
     privacy: string;
+    caption: string;
 }
 
 interface SongSnapFormProps {
@@ -23,7 +24,8 @@ function SongSnapForm({ onFormSubmit }: SongSnapFormProps) {
         songName: '',
         artistName: '',
         backgroundTheme: '',
-        privacy: ''
+        privacy: '',
+        caption: ''
     });
 
     // Callback function to update the selected theme
@@ -51,6 +53,10 @@ function SongSnapForm({ onFormSubmit }: SongSnapFormProps) {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
+
+    useEffect(() => { 
+        console.log(formData);
+    }, [formData])
 
 
     return (
@@ -90,16 +96,29 @@ function SongSnapForm({ onFormSubmit }: SongSnapFormProps) {
                 </Form.Group>
                 <Form.Group as={Col} md="6" controlId="validationCustom04">
                     <Form.Label className='h6'>Privacy</Form.Label>
-                    <CheckBox numRadios={2} radioLabels={['Public', 'Friends Only']} onRadioSelect={handlePrivacySelection} />
+                    <CheckBox numRadios={2} radioLabels={['Public', 'Private']} onRadioSelect={handlePrivacySelection} />
                     {/* <Form.Control type="password" placeholder="Password" name="password" required /> */}
                     <Form.Control.Feedback type="invalid">
-                        Please choose a privacy setting, either public or friends only.
+                        Please choose a privacy setting, either public or private.
                     </Form.Control.Feedback>
                 </Form.Group>
+            </Row>
+            <Row className="mb-3">
+                <Col md="12">
+                    <Form.Label className='h6'>Caption</Form.Label>
+                    <Form.Control
+                        as="textarea"
+                        placeholder="Enter a caption"
+                        style={{ height: '100px' }}
+                        name="caption"
+                        onChange={handleChange}
+                    />
+                </Col>
             </Row>
             <div className='d-flex justify-content-center'>
                 <Button type="submit" variant="primary">Set Details</Button>
             </div>
+
 
         </Form>
     )
