@@ -49,4 +49,31 @@ router.post('/submit', (req, res) => {
     }
 });
 
-  module.exports = router;
+router.get('/all', (req, res) => {
+    const id = req.query.id;
+
+    if (id) {
+        const query = `
+          SELECT PromptText, Theme, DateCreated
+          FROM prompt_submissions
+          WHERE UserID = ?
+          ORDER BY DateCreated DESC
+    `;
+        connection.query(query, [id], (err, results) => {
+            if (err) {
+                console.log("Error executing the query: " + err);
+                return res.status(500).json({ error: "OO0OPS! Something happened :(" });
+            } else {
+                if (results.length > 0) {
+                    return res.status(200).json(results);
+                } else {
+                    return res.status(404).json({ message: 'No submissions sent' });
+                }
+            }
+        });
+    } else {
+        return res.status(400).json({ error: 'Invalid data format' });
+    }
+});
+
+module.exports = router;
