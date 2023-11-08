@@ -5,6 +5,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 import SongSnapPlayer from '../components/SongSnapPlayer';
 import PopUpModal from '../components/PopUpModal';
 import SongSnapForm from '../components/SongSnapForm';
+import Cookies from 'js-cookie';
 
 function Home() {
     const [activeView, setActiveView] = useState<string>('main-feed');
@@ -58,7 +59,7 @@ function Home() {
             const trackID = await getSongID(songName, artistName);
             console.log(trackID)
             if (trackID) {
-                const player = <SongSnapPlayer dztype="dzplayer" trackID={trackID} backgroundTheme={backgroundTheme} caption={caption}/>;
+                const player = <SongSnapPlayer dztype="dzplayer" trackID={trackID} backgroundTheme={backgroundTheme} caption={caption} />;
                 setSongSnapPlayer(player);
 
             }
@@ -70,7 +71,7 @@ function Home() {
 
 
 
-    const generateSongSnap = (songName: string, artistName: string, backgroundTheme: string, caption:string) => {
+    const generateSongSnap = (songName: string, artistName: string, backgroundTheme: string, caption: string) => {
         generatePlayer(songName, artistName, backgroundTheme, caption);
         setPlayerVisible(true);
     };
@@ -80,7 +81,7 @@ function Home() {
         artistName: string;
         backgroundTheme: string;
         privacy: string;
-        caption:string
+        caption: string
     }
 
     const [songSnapData, setSongSnapData] = useState<SongSnapInputData>({
@@ -89,7 +90,7 @@ function Home() {
         backgroundTheme: '',
         privacy: '',
         caption: ''
-        
+
     });
 
     const handleSongSnapUpload = (formData: SongSnapInputData) => {
@@ -97,9 +98,77 @@ function Home() {
         setSongSnapData(formData);
     };
 
+    const getCookie = (name: string) => {
+        return Cookies.get(name);
+    }
+
+    interface SongSnap {
+        postID: number;
+        promptID: number;
+        songID: number;
+        date: string;
+        visibility: string;
+        caption: string;
+        theme: string;
+        userID: number;
+    }
+    const [mainFeedSongSnaps, setMainFeedSongSnaps] = useState<SongSnap[]>([]);
+    const [friendsFeedSongSnaps, setFriendsFeedSongSnaps] = useState<SongSnap[]>([]);
+    const [isFeedsLoaded, setIsFeedsLoaded] = useState<boolean>(false);
+
+    const getMainFeedSongSnaps = async () => {
+        try {
+            const response = await axios.get('/posts/get/songSnaps');
+            console.log(response.data);
+            return response.data;
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    const getFriendsFeedSongSnaps = async () => {
+        const userID = await getCookie('userID');
+      
+        if (userID) {
+          const numUserID = parseInt(userID);
+      
+          if (!isNaN(numUserID)) { // Check if parsing is successful
+            try {
+              const response = await axios.get('/posts/get/friendSongSnaps', {
+                params: {
+                  userID: numUserID
+                }
+              });
+              console.log(response.data);
+              return response.data;
+            } catch (err) {
+              console.log(err);
+            }
+          } else {
+            console.log('Invalid userID in the cookie');
+          }
+        } else {
+          console.log('No userID found in the cookie');
+        }
+      };
+      
+
+
+
     useEffect(() => {
-        console.log(songSnapData);
-    }, [songSnapData]);
+        const populateFeeds = async () => {
+            try {
+                const mainFeedSongSnaps = await getMainFeedSongSnaps();
+                setMainFeedSongSnaps(mainFeedSongSnaps);
+                const friendsFeedSongSnaps = await getFriendsFeedSongSnaps();
+                setFriendsFeedSongSnaps(friendsFeedSongSnaps);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        populateFeeds();
+    }, []);
+
 
 
 

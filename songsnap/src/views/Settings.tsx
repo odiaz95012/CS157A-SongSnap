@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import NavBar from "../components/NavBar";
 import Cookies from 'js-cookie';
 import { get } from 'http';
-import {Container} from "react-bootstrap";
+import { Container } from "react-bootstrap";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import axios from 'axios';
@@ -11,47 +11,55 @@ function Settings() {
     const [userData, setUserData] = useState(null);
     const [friendRequests, setFriendRequests] = useState(null);
     const [userFriends, setUserFriends] = useState(null);
+
     const getCookie = (name: string) => {
         return Cookies.get(name);
     }
 
-    const userID = 1;
+    //const userID = 1;
     useEffect(() => {
-        // get user id from cookie
 
-        // Fetch user data
-        axios.get('/users/id?id=' + userID)
-            .then(response => {
-                setUserData(response.data); // Assuming the data retrieved is directly stored in response.data
-            })
-            .catch(error => {
-                console.error("Error fetching user data:", error);
-            });
+        const fetchUserData = async () => {
+            // get user id from cookie
+            const userID = await getCookie('userID');
+            // Fetch user data
+            axios.get('/users/id?id=' + userID)
+                .then(response => {
+                    console.log(response.data)
+                    setUserData(response.data); // Assuming the data retrieved is directly stored in response.data
+                })
+                .catch(error => {
+                    console.error("Error fetching user data:", error);
+                });
 
-        // Fetch friend requests
-        axios.get('/users/friend-requests/all?id=' + userID)
-            .then(response => {
-                setFriendRequests(response.data); // Assuming the data retrieved is directly stored in response.data
-            })
-            .catch(error => {
-                console.error("Error fetching friend requests:", error);
-            });
+            // Fetch friend requests
+            axios.get('/users/friend-requests/all?id=' + userID)
+                .then(response => {
+                    console.log(response.data)
+                    setFriendRequests(response.data); // Assuming the data retrieved is directly stored in response.data
+                })
+                .catch(error => {
+                    console.error("Error fetching friend requests:", error);
+                });
 
-        // Fetch user's friends
-        axios.get('/users/friends/all?id=' + userID)
-            .then(response => {
-                setUserFriends(response.data); // Assuming the data retrieved is directly stored in response.data
-            })
-            .catch(error => {
-                console.error("Error fetching user's friends:", error);
-            });
+            // Fetch user's friends
+            axios.get('/users/friends/all?id=' + userID)
+                .then(response => {
+                    console.log(response.data)
+                    setUserFriends(response.data); // Assuming the data retrieved is directly stored in response.data
+                })
+                .catch(error => {
+                    console.error("Error fetching user's friends:", error);
+                });
+        }
+        fetchUserData();
+
     }, []);
 
     const profileImage = {
         width: '100%'
     };
 
-    console.log(getCookie('userID'));
 
     return (
         <>
