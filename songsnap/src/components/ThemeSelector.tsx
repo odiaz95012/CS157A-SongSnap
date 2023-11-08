@@ -8,9 +8,12 @@ interface ThemeSelectorProps {
 }
 function ThemeSelector({ onThemeSelect }: ThemeSelectorProps) {
 
+  interface Theme {
+    Theme: string;
+  }
 
 
-  const [themes, setThemes] = React.useState<[{ Theme: string }]>([{ Theme: '' }]);
+  const [themes, setThemes] = React.useState<Theme []>([{ Theme: '' }]);
   const [selectedTheme, setSelectedTheme] = React.useState<string | null>(null);
   const [isThemesLoaded, setIsThemesLoaded] = React.useState<boolean>(false);
 
@@ -18,7 +21,20 @@ function ThemeSelector({ onThemeSelect }: ThemeSelectorProps) {
     try {
       const response = await axios.get('/themes');
       const data = await response.data;
-      setThemes(data);
+
+      // Create a Set to store unique themes
+      const uniqueThemes = new Set();
+
+      // Filter the data array to remove duplicates
+      const filteredData = data.filter((theme: Theme) => {
+        if (!uniqueThemes.has(theme.Theme)) {
+          uniqueThemes.add(theme.Theme);
+          return true; // Include this theme in the filtered result
+        }
+        return false; // Skip this theme (duplicate)
+      });
+
+      setThemes(filteredData);
     } catch (err) {
       console.log(err);
     }
