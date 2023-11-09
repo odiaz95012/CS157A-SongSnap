@@ -65,7 +65,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
         data-dztype='dzplayer'
         src={`https://www.deezer.com/plugins/player?type=tracks&id=${trackID}&format=classic&color=007FEB&autoplay=true&playlist=true&width=100%&height=100%`}
         className="player"
-        style={{ width: '29.1vh', height: '29.1vh', position: 'relative' }}
+        style={{ width: '250px', height: '250px', position: 'relative' }}
         onLoad={() => setIframeLoaded(true)}
       />
     );
@@ -89,7 +89,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
                   </Row>
                   <Row className="mt-2" >
                     <Col md={12} style={{ width: '320px', height: '240px' }}>
-                      <Button variant='primary' className='like-btn me-1' onClick={() => setIsLiked(!isLiked)} style={{ marginLeft: "-55px", width: '150px'}}>
+                      <Button variant='primary' className='like-btn me-1' onClick={() => setIsLiked(!isLiked)} style={{ marginLeft: "-55px", width: '150px' }}>
                         {isLiked ? (
                           <HeartFill className='icon' />
                         ) : (
