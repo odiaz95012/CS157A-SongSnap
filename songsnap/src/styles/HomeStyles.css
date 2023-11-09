@@ -5,27 +5,35 @@
 .active-view {
     display: block;
 }
+
 .navbar .nav-link.active {
-    color: #2D68C4; /* Change to your preferred color */
+    color: #2D68C4;
+    /* Change to your preferred color */
     text-decoration: underline;
 }
+
 .scrolling-container {
     display: flex;
     overflow-x: auto;
     white-space: nowrap;
-    border: 1px solid #ccc;
+    border: 1px solid black;
     padding: 10px;
     min-height: 75px;
     width: 100%;
+    background-color: rgba(23, 44, 127, 0.2);
+    border-radius: 15px;
 }
 
 .scrolling-content {
     display: inline-block;
     margin: 10px 20px 10px 20px;
+
 }
+
 .logo {
     border-radius: 50%;
 }
+
 .avatar {
     vertical-align: middle;
     width: 75px;

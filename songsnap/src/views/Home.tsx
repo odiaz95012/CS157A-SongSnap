@@ -83,7 +83,7 @@ function Home() {
                 promptID: 1
             })
                 .then((response) => {
-                    if(visibility === 'public'){ // post songsnap to main feed
+                    if (visibility === 'public') { // post songsnap to main feed
                         setMainFeedSongSnaps([response.data, ...mainFeedSongSnaps]);
                     } else { // post songsnap to friends feed
                         setFriendsFeedSongSnaps([response.data, ...friendsFeedSongSnaps]);
@@ -152,7 +152,7 @@ function Home() {
             console.log(err);
         }
     }
-    
+
 
     const getFriendsFeedSongSnaps = async () => {
         const userID = await getCookie('userID');
@@ -240,7 +240,7 @@ function Home() {
             </header>
             {/* Stories Container */}
             <StoriesContainer />
-            
+
             {/* Feed Container */}
             <div className="d-flex-1 text-center justify-content-center align-items-center mt-3">
                 <div className="row justify-content-center">

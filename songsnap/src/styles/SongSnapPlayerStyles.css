@@ -24,6 +24,20 @@
     /* Lower z-index to make it appear below the player */
 }
 
+.story-header {
+    color: black;
+    background-color: rgba(211, 211, 211, 0.2);
+}
+
+.story {
+
+    background-color: white;
+    width: '225px';
+    height: '300px';
+    text-align: center;
+}
+
+
 .theme-container {
     position: relative;
     width: 100%;
