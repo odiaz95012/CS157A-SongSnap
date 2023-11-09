@@ -65,7 +65,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
         data-dztype='dzplayer'
         src={`https://www.deezer.com/plugins/player?type=tracks&id=${trackID}&format=classic&color=007FEB&autoplay=true&playlist=true&width=100%&height=100%`}
         className="player"
-        style={{ width: '25vh', height: '25vh', position: 'relative' }}
+        style={{ width: '29.1vh', height: '29.1vh', position: 'relative' }}
         onLoad={() => setIframeLoaded(true)}
       />
     );
