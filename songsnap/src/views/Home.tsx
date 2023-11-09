@@ -8,6 +8,8 @@ import SongSnapForm from '../components/SongSnapForm';
 import Cookies from 'js-cookie';
 import StoriesContainer from '../components/StoryContainer';
 
+//TODO: FIGURE OUT HOW TO GET EACH USER's USERNAME IN ITS CORRESPONDING SONGSNAP CAPTION
+
 function Home() {
     const [activeView, setActiveView] = useState<string>('main-feed');
     const [songName, setSongName] = useState<string>('');
@@ -52,13 +54,13 @@ function Home() {
     };
 
 
-    const generatePlayer = async (backgroundTheme: string, caption: string, songID: number): Promise<JSX.Element | void> => {
+    const generatePlayer = async (backgroundTheme: string, caption: string, songID: number, userDetails:User): Promise<JSX.Element | void> => {
         // Set isLoading to true when generating the player
         setIsLoading(true);
 
         try {
             if (songID) {
-                const player = <SongSnapPlayer dztype="dzplayer" trackID={songID} backgroundTheme={backgroundTheme} caption={caption} />;
+                const player = <SongSnapPlayer dztype="dzplayer" trackID={songID} backgroundTheme={backgroundTheme} caption={caption} user={userDetails}/>;
                 setSongSnapPlayer(player);
 
             }
@@ -70,7 +72,7 @@ function Home() {
 
 
 
-    const postSongSnap = async (backgroundTheme: string, caption: string, visibility: string, songName: string, artistName: string) => {
+    const postSongSnap = async (backgroundTheme: string, caption: string, visibility: string, songName: string, artistName: string, userDetails: User) => {
         const userID = await getCookie('userID');
         const songID = await getSongID(songName, artistName);
         if (userID && songID) {
@@ -88,7 +90,7 @@ function Home() {
                     } else { // post songsnap to friends feed
                         setFriendsFeedSongSnaps([response.data, ...friendsFeedSongSnaps]);
                     }
-                    generateSongSnap(backgroundTheme, caption, songID);
+                    generateSongSnap(backgroundTheme, caption, songID, userDetails);
                 })
                 .catch((error) => {
                     console.log(error);
@@ -98,9 +100,9 @@ function Home() {
         }
     };
 
-    const generateSongSnap = (backgroundTheme: string, caption: string, songID: number) => {
+    const generateSongSnap = (backgroundTheme: string, caption: string, songID: number, userDetails:User) => {
 
-        generatePlayer(backgroundTheme, caption, songID);
+        generatePlayer(backgroundTheme, caption, songID, userDetails);
         setPlayerVisible(true);
     };
 
@@ -139,10 +141,14 @@ function Home() {
         Caption: string;
         Theme: string;
         UserID: number;
+        Username: string;
+        name: string;
+        ProfilePicture: string;
     }
     const [mainFeedSongSnaps, setMainFeedSongSnaps] = useState<SongSnap[]>([]);
     const [friendsFeedSongSnaps, setFriendsFeedSongSnaps] = useState<SongSnap[]>([]);
     const [isFeedsLoaded, setIsFeedsLoaded] = useState<boolean>(false);
+    const [currUserDetails, setCurrUserDetails] = useState<User>({ Username: '', name: '', ProfilePicture: '' });
 
     const getMainFeedSongSnaps = async () => {
         try {
@@ -180,33 +186,61 @@ function Home() {
         }
     };
 
+    interface User{
+        Username: string;
+        name: string; 
+        ProfilePicture: string
+    }
+
+    
+
     useEffect(() => {
+        const getUserDetails = async () => {
+            try {
+                const userID = await getCookie('userID');
+                const response = await axios.get('/users/id?id=' + userID);
+                setCurrUserDetails(response.data);
+                
+            } catch (error) {
+                console.error(error);
+            }
+        }; 
         const populateFeeds = async () => {
             try {
                 const mainFeedSongSnaps = await getMainFeedSongSnaps();
                 setMainFeedSongSnaps(mainFeedSongSnaps);
                 const friendsFeedSongSnaps = await getFriendsFeedSongSnaps();
                 if (friendsFeedSongSnaps) {
-                    setFriendsFeedSongSnaps(friendsFeedSongSnaps);
-                }
+                    setFriendsFeedSongSnaps(friendsFeedSongSnaps);                }
                 setIsFeedsLoaded(true);
             } catch (error) {
                 console.error(error);
             }
         };
+        getUserDetails();
         populateFeeds();
     }, []);
 
+    
+
+
 
     const generateFeedSongSnaps = (songSnaps: SongSnap[]) => {
-        return songSnaps.map((songSnap) => (
-            <div className='player-container' key={songSnap.PostID}>
-                <SongSnapPlayer dztype="dzplayer" trackID={songSnap.SongID} backgroundTheme={songSnap.Theme} caption={songSnap.Caption} />
-
-            </div>
-
-        ));
+        return songSnaps.map((songSnap) => {
+            const profileDetails: User = {
+                Username: songSnap.Username,
+                name: songSnap.name,
+                ProfilePicture: songSnap.ProfilePicture
+            };
+    
+            return (
+                <div className='player-container' key={songSnap.PostID}>
+                    <SongSnapPlayer dztype="dzplayer" trackID={songSnap.SongID} backgroundTheme={songSnap.Theme} caption={songSnap.Caption} user={profileDetails} />
+                </div>
+            );
+        });
     };
+    
 
 
 
@@ -230,7 +264,7 @@ function Home() {
                                         body={<SongSnapForm onFormSubmit={handleSongSnapUpload} />}
                                         submitButtonText='Publish SongSnap'
                                         openButtonText='Create SongSnap'
-                                        functionToExecute={() => postSongSnap(songSnapData.backgroundTheme, songSnapData.caption, songSnapData.privacy, songSnapData.songName, songSnapData.artistName)}
+                                        functionToExecute={() => postSongSnap(songSnapData.backgroundTheme, songSnapData.caption, songSnapData.privacy, songSnapData.songName, songSnapData.artistName, currUserDetails)}
                                     />
                                 </div>
                             </div>

@@ -94,7 +94,8 @@
 }
 
 .caption-content {
-    font-size: 21px;
+    font-size: 18px;
+    padding-left: 5px;
 }
 
 .publish-comment {

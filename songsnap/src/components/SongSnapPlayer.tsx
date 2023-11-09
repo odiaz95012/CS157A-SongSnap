@@ -3,14 +3,21 @@ import { Row, Col, Button, Image } from 'react-bootstrap';
 import { Heart, HeartFill, Chat, ChatFill } from 'react-bootstrap-icons';
 import '../styles/SongSnapPlayerStyles.css';
 
+interface User{
+  Username: string;
+  name: string; 
+  ProfilePicture: string
+}
 interface DzPlayerProps {
   dztype: string;
   trackID: number;
   backgroundTheme: string;
   caption?: string;
+  user: User;
 }
 
-const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTheme, caption }) => {
+
+const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTheme, caption, user }) => {
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [isCommentOpen, setIsCommentOpen] = useState<boolean>(false);
@@ -21,7 +28,6 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
   }
 
   const generatePlayer = (trackID: number, dztype: string) => {
-    console.log(trackID);
     return (
       <iframe
         id="dzplayer"
@@ -95,7 +101,7 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
                 <Col xs={4} md={12}>
                   <div className='caption-container'>
                     <div className='caption-content'>
-                      <p>{caption}</p>
+                      <p>{user.Username}: {caption}</p>
                     </div>
                   </div>
                 </Col>
