@@ -10,6 +10,7 @@ import { PersonCheckFill, PersonFillDash} from 'react-bootstrap-icons';
 
 interface Friend {
     User1ID: number;
+    User2ID: number;
     Date: string;
     name: string;
     username: string;
@@ -53,7 +54,7 @@ function Settings() {
                     <a href={'user/' + request.User1ID}><h3 className='fw-bold text-black fw-bold mb-0'>{request.name}</h3></a>
                 </div>
                 <div className="col-2">
-                    <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => respondFriendRequest(request.User1ID, "Rejected")}><PersonFillDash className='icon' /></button>
+                    <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => unAddFriend(request.User1ID)}><PersonFillDash className='icon' /></button>
                 </div>
             </div>
         ));
@@ -61,10 +62,9 @@ function Settings() {
 
     const respondFriendRequest = (ID: number, accept: string) => {
         if (userData) {
-            const user1ID = userData.ID;
 
             const requestData = {
-                user1id: user1ID,
+                user1id: userData.ID,
                 user2id: ID,
                 decision: accept
             };
