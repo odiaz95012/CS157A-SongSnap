@@ -21,7 +21,6 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
   }
 
   const generatePlayer = (trackID: number, dztype: string) => {
-    console.log(trackID);
     return (
       <iframe
         id="dzplayer"

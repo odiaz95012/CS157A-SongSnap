@@ -54,9 +54,6 @@ function SongSnapForm({ onFormSubmit }: SongSnapFormProps) {
         setFormData({ ...formData, [name]: value });
     };
 
-    useEffect(() => { 
-        console.log(formData);
-    }, [formData])
 
 
     return (

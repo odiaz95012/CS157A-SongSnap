@@ -14,6 +14,7 @@ function Home() {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [songSnapPlayer, setSongSnapPlayer] = useState<JSX.Element | null>(null);
     const [isPlayerVisible, setPlayerVisible] = useState<boolean>(false);
+    const [isFeedsGenerated, setIsFeedsGenerated] = useState<boolean>(false);
 
     const handleActiveFeedChange = (view: string) => {
         setActiveView(view);
@@ -42,7 +43,6 @@ function Home() {
                     q: `${songName} ${artistName}`, // Set the song and artist name as a parameter
                 },
             });
-            console.log(response.data);
             setSongID(response.data.data[0].id);
             return response.data.data[0].id;
         } catch (error) {
@@ -51,15 +51,13 @@ function Home() {
     };
 
 
-    const generatePlayer = async (songName: string, artistName: string, backgroundTheme: string, caption: string): Promise<JSX.Element | void> => {
+    const generatePlayer = async (backgroundTheme: string, caption: string, songID: number): Promise<JSX.Element | void> => {
         // Set isLoading to true when generating the player
         setIsLoading(true);
 
         try {
-            const trackID = await getSongID(songName, artistName);
-            console.log(trackID)
-            if (trackID) {
-                const player = <SongSnapPlayer dztype="dzplayer" trackID={trackID} backgroundTheme={backgroundTheme} caption={caption} />;
+            if (songID) {
+                const player = <SongSnapPlayer dztype="dzplayer" trackID={songID} backgroundTheme={backgroundTheme} caption={caption} />;
                 setSongSnapPlayer(player);
 
             }
@@ -71,8 +69,37 @@ function Home() {
 
 
 
-    const generateSongSnap = (songName: string, artistName: string, backgroundTheme: string, caption: string) => {
-        generatePlayer(songName, artistName, backgroundTheme, caption);
+    const postSongSnap = async (backgroundTheme: string, caption: string, visibility: string, songName: string, artistName: string) => {
+        const userID = await getCookie('userID');
+        const songID = await getSongID(songName, artistName);
+        if (userID && songID) {
+            axios.post('/posts/create/songSnap', {
+                songID: songID,
+                caption: caption,
+                theme: backgroundTheme,
+                visibility: visibility,
+                userID: userID,
+                promptID: 1
+            })
+                .then((response) => {
+                    if(visibility === 'public'){ // post songsnap to main feed
+                        setMainFeedSongSnaps([response.data, ...mainFeedSongSnaps]);
+                    } else { // post songsnap to friends feed
+                        setFriendsFeedSongSnaps([response.data, ...friendsFeedSongSnaps]);
+                    }
+                    generateSongSnap(backgroundTheme, caption, songID);
+                })
+                .catch((error) => {
+                    console.log(error);
+                })
+        } else {
+            console.log('No userID found in the cookie');
+        }
+    };
+
+    const generateSongSnap = (backgroundTheme: string, caption: string, songID: number) => {
+
+        generatePlayer(backgroundTheme, caption, songID);
         setPlayerVisible(true);
     };
 
@@ -103,14 +130,14 @@ function Home() {
     }
 
     interface SongSnap {
-        postID: number;
-        promptID: number;
-        songID: number;
+        PostID: number;
+        PromptID: number;
+        SongID: number;
         date: string;
-        visibility: string;
-        caption: string;
-        theme: string;
-        userID: number;
+        Visibility: string;
+        Caption: string;
+        Theme: string;
+        UserID: number;
     }
     const [mainFeedSongSnaps, setMainFeedSongSnaps] = useState<SongSnap[]>([]);
     const [friendsFeedSongSnaps, setFriendsFeedSongSnaps] = useState<SongSnap[]>([]);
@@ -118,8 +145,7 @@ function Home() {
 
     const getMainFeedSongSnaps = async () => {
         try {
-            const response = await axios.get('/posts/get/songSnaps');
-            console.log(response.data);
+            const response = await axios.get('/posts/get/songSnaps')
             return response.data;
         } catch (err) {
             console.log(err);
@@ -128,32 +154,29 @@ function Home() {
 
     const getFriendsFeedSongSnaps = async () => {
         const userID = await getCookie('userID');
-      
+
         if (userID) {
-          const numUserID = parseInt(userID);
-      
-          if (!isNaN(numUserID)) { // Check if parsing is successful
-            try {
-              const response = await axios.get('/posts/get/friendSongSnaps', {
-                params: {
-                  userID: numUserID
+            const numUserID = parseInt(userID);
+
+            if (!isNaN(numUserID)) { // Check if parsing is successful
+                try {
+                    const response = await axios.get('/posts/get/friendSongSnaps', {
+                        params: {
+                            userID: numUserID
+                        }
+                    });
+                    return response.data;
+                } catch (error) {
+                    console.log(error);
+                    return false;
                 }
-              });
-              console.log(response.data);
-              return response.data;
-            } catch (err) {
-              console.log(err);
+            } else {
+                console.log('Invalid userID in the cookie');
             }
-          } else {
-            console.log('Invalid userID in the cookie');
-          }
         } else {
-          console.log('No userID found in the cookie');
+            console.log('No userID found in the cookie');
         }
-      };
-      
-
-
+    };
 
     useEffect(() => {
         const populateFeeds = async () => {
@@ -161,13 +184,29 @@ function Home() {
                 const mainFeedSongSnaps = await getMainFeedSongSnaps();
                 setMainFeedSongSnaps(mainFeedSongSnaps);
                 const friendsFeedSongSnaps = await getFriendsFeedSongSnaps();
-                setFriendsFeedSongSnaps(friendsFeedSongSnaps);
+                if (friendsFeedSongSnaps) {
+                    setFriendsFeedSongSnaps(friendsFeedSongSnaps);
+                }
+                setIsFeedsLoaded(true);
             } catch (error) {
                 console.error(error);
             }
         };
         populateFeeds();
     }, []);
+
+
+    const generateFeedSongSnaps = (songSnaps: SongSnap[]) => {
+        return songSnaps.map((songSnap) => (
+            <div className='player-container' key={songSnap.PostID}>
+                <SongSnapPlayer dztype="dzplayer" trackID={songSnap.SongID} backgroundTheme={songSnap.Theme} caption={songSnap.Caption} />
+
+            </div>
+
+        ));
+    };
+
+
 
 
 
@@ -189,7 +228,7 @@ function Home() {
                                         body={<SongSnapForm onFormSubmit={handleSongSnapUpload} />}
                                         submitButtonText='Publish SongSnap'
                                         openButtonText='Create SongSnap'
-                                        functionToExecute={() => generateSongSnap(songSnapData.songName, songSnapData.artistName, songSnapData.backgroundTheme, songSnapData.caption)}
+                                        functionToExecute={() => postSongSnap(songSnapData.backgroundTheme, songSnapData.caption, songSnapData.privacy, songSnapData.songName, songSnapData.artistName)}
                                     />
                                 </div>
                             </div>
@@ -243,16 +282,11 @@ function Home() {
                         <div className='row'>
                             <div className='container'>
                                 <div className='col-md-12 my-4'>
-                                    {isPlayerVisible ? (
-                                        /* Display the player when isPlayerVisible is true */
-                                        isLoading ? (
-                                            /* Display a loading message while isLoading is true */
-                                            <p>Loading...</p>
-                                        ) : (
-                                            /* Display the player when isLoading is false */
-                                            songSnapPlayer
-                                        )
-                                    ) : null}
+                                    {isFeedsLoaded ? (
+                                        generateFeedSongSnaps(mainFeedSongSnaps)
+                                    ) : (
+                                        <p>Loading...</p>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -267,16 +301,11 @@ function Home() {
                         <div className='row'>
                             <div className='container'>
                                 <div className='col-md-12 my-4'>
-                                    {isPlayerVisible ? (
-                                        /* Display the player when isPlayerVisible is true */
-                                        isLoading ? (
-                                            /* Display a loading message while isLoading is true */
-                                            <p>Loading...</p>
-                                        ) : (
-                                            /* Display the player when isLoading is false */
-                                            songSnapPlayer
-                                        )
-                                    ) : null}
+                                    {isFeedsLoaded ? (
+                                        generateFeedSongSnaps(friendsFeedSongSnaps)
+                                    ) : (
+                                        <p>Loading...</p>
+                                    )}
                                 </div>
                             </div>
                         </div>
