@@ -38,3 +38,7 @@
     background-color: rgba(211, 211, 211, 0.2);
     border-radius: 15px;
 }
+
+.player-container {
+    margin-bottom: 150px;
+}
