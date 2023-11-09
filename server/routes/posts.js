@@ -13,7 +13,7 @@ router.post('/create/songSnap', (req, res) => {
   if (userID) {
     const songSnapInsertQuery = "INSERT INTO songsnaps (PromptID, SongID, Visibility, Theme, Caption, UserID) VALUES (?, ?, ?, ?, ?, ?)";
     const songSnapValues = [songSnapData.promptID, songSnapData.songID, songSnapData.visibility, songSnapData.theme, songSnapData.caption, userID];
-    
+
     connection.query(songSnapInsertQuery, songSnapValues, (err) => {
       if (err) {
         console.log("Error executing the query:" + err);
@@ -30,6 +30,41 @@ router.post('/create/songSnap', (req, res) => {
         }
 
         return res.status(200).json(songSnapData);
+      });
+    });
+  } else {
+    return res.status(500).send("The user ID was not provided");
+  }
+});
+
+router.post('/create/story', (req, res) => {
+  const storyData = req.body;
+  if (!storyData) {
+    return res.status(400).send('No story data provided');
+  }
+
+  // Get the user's ID
+  const userID = storyData.userID;
+  if (userID) {
+    const storyInsertQuery = "INSERT INTO stories (SongID, Visibility, Duration, Caption, UserID) VALUES (?, ?, ?, ?, ?)";
+    const storyValues = [storyData.songID, storyData.visibility, storyData.duration, storyData.caption, userID];
+
+    connection.query(storyInsertQuery, storyValues, (err) => {
+      if (err) {
+        console.log("Error executing the query:" + err);
+        return res.status(500).send("Error creating the story");
+      }
+
+      const postsInsertQuery = "INSERT INTO posts (SongID, Visibility, Caption, UserID) VALUES (?, ?, ?, ?)";
+      const postsInsertValues = [storyData.songID, storyData.visibility, storyData.caption, userID];
+
+      connection.query(postsInsertQuery, postsInsertValues, (err) => {
+        if (err) {
+          console.log("Error executing the query:" + err);
+          return res.status(500).send("Error posting the story to the posts table.");
+        }
+
+        return res.status(200).json(storyData);
       });
     });
   } else {
@@ -70,6 +105,20 @@ router.get('/get/friendSongSnaps', (req, res) => {
       res.status(200).json(results);
     }
   });
+
+});
+
+//Retrieve all active stories from the db
+router.get('/get/activeStories', (req, res) => {
+  const query = "SELECT * FROM stories WHERE TIMESTAMPADD(HOUR, duration, date) > NOW()";
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.log("Error executing the query:" + err);
+      res.status(500).send("Error retrieving stories");
+    } else {
+      res.status(200).json(results);
+    }
+  });
 });
 
 //Get a user's song snaps
@@ -86,6 +135,9 @@ router.get('/get/userSongSnaps', (req, res) => {
     }
   });
 });
+
+
+
 
 
 module.exports = router;

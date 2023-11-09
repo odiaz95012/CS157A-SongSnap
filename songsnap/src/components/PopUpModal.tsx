@@ -10,13 +10,19 @@ interface ModalProps {
     submitButtonText: string;
     openButtonText: string;
     functionToExecute?: Function;
-    onFormSubmit?: (formData: SongSnapInputData) => void;
+    onFormSubmit?: (formData: SongSnapInputData | StoryInputData) => void;
 }
 interface SongSnapInputData {
     songName: string;
     artistName: string;
     backgroundTheme: string;
     privacy: string;
+}
+interface StoryInputData {
+  songName: string;
+  artistName: string;
+  duration: string;
+  privacy: string;
 }
 
 function PopUpModal({ title, body, submitButtonText, openButtonText, functionToExecute, onFormSubmit }: ModalProps) {

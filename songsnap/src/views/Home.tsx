@@ -6,6 +6,7 @@ import SongSnapPlayer from '../components/SongSnapPlayer';
 import PopUpModal from '../components/PopUpModal';
 import SongSnapForm from '../components/SongSnapForm';
 import Cookies from 'js-cookie';
+import StoriesContainer from '../components/StoryContainer';
 
 function Home() {
     const [activeView, setActiveView] = useState<string>('main-feed');
@@ -82,7 +83,7 @@ function Home() {
                 promptID: 1
             })
                 .then((response) => {
-                    if(visibility === 'public'){ // post songsnap to main feed
+                    if (visibility === 'public') { // post songsnap to main feed
                         setMainFeedSongSnaps([response.data, ...mainFeedSongSnaps]);
                     } else { // post songsnap to friends feed
                         setFriendsFeedSongSnaps([response.data, ...friendsFeedSongSnaps]);
@@ -151,6 +152,7 @@ function Home() {
             console.log(err);
         }
     }
+
 
     const getFriendsFeedSongSnaps = async () => {
         const userID = await getCookie('userID');
@@ -237,19 +239,8 @@ function Home() {
                 </div>
             </header>
             {/* Stories Container */}
-            <div className="container justify-content-center mt-3">
-                <div className="d-flex justify-content-start">
-                    <h3>Stories</h3>
-                </div>
-                <div className="scrolling-container d-flex justify-content-center">
-                    {/* Place holders for now */}
-                    {Array.from({ length: 15 }).map((_, index) => (
-                        <div className="scrolling-content" key={index}>
-                            <img className="avatar" src={require('../images/logo.png')} alt={`Logo ${index + 1}`} />
-                        </div>
-                    ))}
-                </div>
-            </div>
+            <StoriesContainer />
+
             {/* Feed Container */}
             <div className="d-flex-1 text-center justify-content-center align-items-center mt-3">
                 <div className="row justify-content-center">
