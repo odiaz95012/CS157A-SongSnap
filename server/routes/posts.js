@@ -74,8 +74,10 @@ router.post('/create/story', (req, res) => {
 
 
 //Retrieve all songs snaps from the db for the main feed
-router.get('/get/songSnaps', (req, res) => {
-  const query = "SELECT * FROM songsnaps";
+router.get('/get/songSnaps', (_, res) => {
+  const query =`SELECT ss.*, u.Username, u.name, u.ProfilePicture
+                FROM songsnaps ss, users u
+                WHERE ss.UserID = u.ID`;
   connection.query(query, (err, results) => {
     if (err) {
       console.log("Error executing the query:" + err);
@@ -91,9 +93,10 @@ router.get('/get/friendSongSnaps', (req, res) => {
 
   // Get the user's friends' and the account owners song snaps
   const query = `
-    SELECT ss.*
+    SELECT ss.*, u.Username, u.name, u.ProfilePicture
     FROM songsnaps ss
     JOIN friends f ON ss.UserID = f.User2ID
+    JOIN users u ON ss.UserID = u.ID
     WHERE f.User1ID = ? AND f.Status = 'Accepted';
   `;
 
