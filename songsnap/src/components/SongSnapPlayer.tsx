@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Button, Image } from 'react-bootstrap';
 import { Heart, HeartFill, Chat, ChatFill } from 'react-bootstrap-icons';
 import '../styles/SongSnapPlayerStyles.css';
-
-interface User{
+import axios from 'axios';
+import Cookies from 'js-cookie';
+interface User {
   Username: string;
-  name: string; 
+  name: string;
   ProfilePicture: string
 }
 interface DzPlayerProps {
@@ -14,12 +15,14 @@ interface DzPlayerProps {
   backgroundTheme: string;
   caption?: string;
   user: User;
+  postID: number;
 }
 
 
-const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTheme, caption, user }) => {
+const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTheme, caption, user, postID }) => {
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
   const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [numLikes, setNumLikes] = useState<number>(0);
   const [isCommentOpen, setIsCommentOpen] = useState<boolean>(false);
   const [player, setPlayer] = useState<JSX.Element | null>(null);
 
@@ -44,14 +47,67 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
     setIsCommentOpen(!isCommentOpen);
   };
 
+  const like = async () => {
+    axios.post('/posts/like', {
+      postID: postID,
+      userID: await Cookies.get('userID')
+    }).then(async () => {
+      await getLikes();
+    }).catch((error) => {
+      console.log(error);
+    });
+  };
+
+  const unlike = async () => {
+    axios.post('/posts/unlike', {
+      postID: postID,
+      userID: await Cookies.get('userID')
+    }).then(async () => {
+      await getLikes();
+    }).catch((error) => {
+      console.log(error);
+    });
+  };
+
+
+
+  const getLikes = async() => {
+    axios.get(`/posts/get/likes?postID=${postID}&userID=${await Cookies.get('userID')}`)
+      .then((response) => {
+        console.log(response);
+        if (response.data) {
+          setNumLikes(response.data.likeCount);
+          response.data.isLiked ? setIsLiked(true) : setIsLiked(false);
+        } else {
+          // No likes for the post, set numLikes to 0
+          setNumLikes(0);
+        }
+      }).catch((error) => {
+        console.log(error);
+      });
+  };
+  
+
+  const handleLikeEvent = () => {
+
+    // If isLiked is true, call unlike; if false, call like
+    isLiked ? unlike() : like();
+    // Toggle the isLiked state
+    setIsLiked(!isLiked);
+  };
+
   useEffect(() => {
-    try {
-      const generatedPlayer = generatePlayer(trackID, dztype);
-      setPlayer(generatedPlayer);
-      setIframeLoaded(true);
-    } catch (e) {
-      console.log('Error generating player:', e);
+    const fetchData = async () => {
+      try {
+        const generatedPlayer = generatePlayer(trackID, dztype);
+        setPlayer(generatedPlayer);
+        await getLikes();
+        setIframeLoaded(true);
+      } catch (e) {
+        console.log('Error generating player:', e);
+      }
     }
+    fetchData();
   }, [trackID, dztype]);
 
   return (
@@ -72,24 +128,30 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
               </Row>
               <Row>
                 <Col md={4}>
-                  <Button variant='primary' className='like-btn me-1' onClick={() => setIsLiked(!isLiked)}>
-                    {isLiked ? (
+                  <div className='like-count-container'>
+                    <div className='like-count-icon'>
                       <HeartFill className='icon' />
-                    ) : (
-                      <Heart className='icon' />
-                    )}
-                  </Button>
+                    </div>
+                    <span className="form-label like-count">: {numLikes}</span>
+                  </div>
+
+                </Col>
+              </Row>
+              <Row>
+                <Col md={4}>
+                  <a className={`like-btn me-1 ${isLiked ? 'liked' : ''}`} onClick={handleLikeEvent}>
+                    <HeartFill className='like-icon' />
+                  </a>
                 </Col>
                 <Col md={4}>
-                  <Button variant='primary' className='comment-btn' onClick={toggleComment}>
+                  <a className="comment-btn" onClick={toggleComment}>
                     {isCommentOpen ? (
                       <ChatFill className='icon' />
                     ) : (
                       <Chat className='icon' />
                     )
                     }
-
-                  </Button>
+                  </a>
                 </Col>
               </Row>
               <Row>

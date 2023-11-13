@@ -54,13 +54,20 @@ function Home() {
     };
 
 
-    const generatePlayer = async (backgroundTheme: string, caption: string, songID: number, userDetails:User): Promise<JSX.Element | void> => {
+    const generatePlayer = async (backgroundTheme: string, caption: string, songID: number, userDetails:User, postID:number): Promise<JSX.Element | void> => {
         // Set isLoading to true when generating the player
         setIsLoading(true);
 
         try {
             if (songID) {
-                const player = <SongSnapPlayer dztype="dzplayer" trackID={songID} backgroundTheme={backgroundTheme} caption={caption} user={userDetails}/>;
+                const player = <SongSnapPlayer 
+                                    dztype="dzplayer" 
+                                    trackID={songID} 
+                                    backgroundTheme={backgroundTheme} 
+                                    caption={caption} 
+                                    user={userDetails}
+                                    postID={postID}
+                                    />;
                 setSongSnapPlayer(player);
 
             }
@@ -84,13 +91,15 @@ function Home() {
                 userID: userID,
                 promptID: 1
             })
-                .then((response) => {
+                .then(async (response) => {
                     if (visibility === 'public') { // post songsnap to main feed
                         setMainFeedSongSnaps([response.data, ...mainFeedSongSnaps]);
                     } else { // post songsnap to friends feed
                         setFriendsFeedSongSnaps([response.data, ...friendsFeedSongSnaps]);
                     }
-                    generateSongSnap(backgroundTheme, caption, songID, userDetails);
+                    const postID = response.data.PostID;
+                    await generateSongSnap(backgroundTheme, caption, songID, userDetails, postID);
+                    window.location.reload();
                 })
                 .catch((error) => {
                     console.log(error);
@@ -100,9 +109,9 @@ function Home() {
         }
     };
 
-    const generateSongSnap = (backgroundTheme: string, caption: string, songID: number, userDetails:User) => {
+    const generateSongSnap = (backgroundTheme: string, caption: string, songID: number, userDetails:User, postID: number) => {
 
-        generatePlayer(backgroundTheme, caption, songID, userDetails);
+        generatePlayer(backgroundTheme, caption, songID, userDetails, postID);
         setPlayerVisible(true);
     };
 
@@ -235,7 +244,14 @@ function Home() {
     
             return (
                 <div className='player-container' key={songSnap.PostID}>
-                    <SongSnapPlayer dztype="dzplayer" trackID={songSnap.SongID} backgroundTheme={songSnap.Theme} caption={songSnap.Caption} user={profileDetails} />
+                    <SongSnapPlayer 
+                        dztype="dzplayer" 
+                        trackID={songSnap.SongID} 
+                        backgroundTheme={songSnap.Theme} 
+                        caption={songSnap.Caption} 
+                        user={profileDetails}
+                        postID={songSnap.PostID}
+                         />
                 </div>
             );
         });
