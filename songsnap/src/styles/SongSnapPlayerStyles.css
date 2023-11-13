@@ -5,9 +5,7 @@
     width: 70%;
     height: 70px;
     overflow: auto;
-
     z-index: 1;
-    /* Set a z-index value to control the stacking order */
 }
 
 .player-container {
@@ -21,7 +19,6 @@
     width: 600px;
     height: 400px;
     z-index: 0;
-    /* Lower z-index to make it appear below the player */
 }
 
 .story-header {
@@ -49,12 +46,20 @@
 .like-btn {
     position: absolute;
     top: 90%;
-    left: 58%;
+    left: 59%;
     transform: translate(-30%, -70%);
     width: 45px;
     height: 45px;
     z-index: 2;
-    /* Set a higher z-index to make it appear above the player */
+    color: white;
+    border-radius: 25%;
+}
+.like-btn:hover {
+    cursor: pointer;
+    background-color: rgba(211, 211, 211, 0.5);
+}
+.liked {
+    color:red;
 }
 
 .comment-btn {
@@ -64,24 +69,35 @@
     transform: translate(-30%, -70%);
     width: 45px;
     height: 45px;
+    color: white;
     z-index: 2;
-    /* Set a higher z-index to make it appear above the player */
+    justify-content: center;
+    align-content: center;
+    border-radius: 25%;
+}
+
+.comment-btn:hover {
+    background-color: rgba(211, 211, 211, 0.5);
+    cursor: pointer;
 }
 
 .icon {
-    width: 20px;
-    height: 20px;
-    margin-bottom: 5px;
+    width: 35px;
+    height: 30px;
+    margin-top: 5px;
+}
+.like-icon {
+    width: 35px;
+    height: 30px;
+    margin-top: 7px;
 }
 
 .comments-container {
     background-color: rgba(22, 22, 24, 0.9);
     width: 100%;
     margin-left: 10px;
-
     min-height: 35px;
     color: white;
-
 }
 
 .caption-container {
@@ -102,3 +118,35 @@
     width: 50%;
     margin-left: 25%;
 }
+
+.like-count-container {
+    position: absolute;
+    top: 10%;
+    left: 5%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    margin-left: 25px;
+    color: white;
+    background-color: rgba(22, 22, 24, 0.5);
+    min-width: 50px;
+    min-height: 50px;
+    text-align: center;
+    display: flex;
+    border-radius: 15px;
+    text-overflow: ellipsis;
+    max-width: 20%;
+    padding: 0px 5px;
+  }
+
+  .like-count-icon {
+    width: 20px;
+    height: 20px;
+    margin-top: 5px;
+    color: red;
+  }
+
+  .like-count {
+    font-size: 21px;
+    padding-left: 15px;
+    padding-top: 7px;
+  }

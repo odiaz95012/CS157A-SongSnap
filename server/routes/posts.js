@@ -75,7 +75,7 @@ router.post('/create/story', (req, res) => {
 
 //Retrieve all songs snaps from the db for the main feed
 router.get('/get/songSnaps', (_, res) => {
-  const query =`SELECT ss.*, u.Username, u.name, u.ProfilePicture
+  const query = `SELECT ss.*, u.Username, u.name, u.ProfilePicture
                 FROM songsnaps ss, users u
                 WHERE ss.UserID = u.ID`;
   connection.query(query, (err, results) => {
@@ -138,6 +138,80 @@ router.get('/get/userSongSnaps', (req, res) => {
     }
   });
 });
+
+//Like a post
+router.post('/like', (req, res) => {
+  const likeData = req.body;
+  if (!likeData) {
+    return res.status(400).send('No like data provided');
+  }
+  const likeInsertQuery = "INSERT INTO likes (PostID, UserID) VALUES (?, ?)";
+  const likeValues = [likeData.postID, likeData.userID];
+
+  connection.query(likeInsertQuery, likeValues, (err) => {
+    if (err) {
+      console.log("Error executing the query:" + err);
+      return res.status(500).send("Error liking the post");
+    }
+    return res.status(200).json(likeData);
+  });
+});
+
+//Unlike a post
+router.post('/unlike', (req, res) => {
+  const likeData = req.body;
+  if (!likeData) {
+    return res.status(400).send('No like data provided');
+  }
+  const likeDeleteQuery = "DELETE FROM likes WHERE PostID = ? AND UserID = ?";
+  const likeValues = [likeData.postID, likeData.userID];
+
+  connection.query(likeDeleteQuery, likeValues, (err) => {
+    if (err) {
+      console.log("Error executing the query:" + err);
+      return res.status(500).send("Error unliking the post");
+    }
+    return res.status(200).json(likeData);
+  });
+
+});
+
+// Get the likes for a post
+router.get('/get/likes', (req, res) => {
+  const postID = req.query.postID;
+  const userID = req.query.userID;
+  const query = `
+    SELECT COUNT(PostID) AS likeCount
+    FROM likes 
+    WHERE PostID = ?
+    GROUP BY PostID;
+  `;
+  connection.query(query, [postID], (err, likesResults) => {
+    if (err) {
+      console.log("Error executing the query:" + err);
+      res.status(500).send("Error retrieving likes");
+    } else {
+      // Check if the given userID is in the results
+      const userIDsQuery = "SELECT UserID FROM likes WHERE PostID = ?";
+      connection.query(userIDsQuery, [postID], (err, userIDresults) => {
+        if (err) {
+          console.log("Error executing the query:" + err);
+          res.status(500).send("Error retrieving the user ids for likes");
+        } else {
+          const isLikedByCallingUser = userIDresults.some(result => result.UserID === parseInt(userID));
+          const response = {
+            likeCount: likesResults.length > 0 ? likesResults[0].likeCount : 0,
+            isLiked: isLikedByCallingUser
+          };
+
+          res.status(200).send(response);
+        }
+      })
+    }
+  });
+});
+
+
 
 
 
