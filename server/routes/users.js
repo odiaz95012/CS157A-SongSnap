@@ -164,16 +164,64 @@ router.get('/friend-requests/all', (req, res) => {
   }
 });
 
+// TODO: fully functional except outgoing friend requests can be accepted by themselves.
 router.post('/friend-requests/respond', (req, res) => {
   const requestData = req.body;
-  if (requestData.user1id && requestData.user2id && (requestData.decision === 'Accepted' || requestData.decision === 'Rejected')) {
+
+  // Check if accepted or rejected
+  if (requestData.user1id && requestData.user2id && requestData.decision === 'Accepted') {
+    // Request was accepted; accept incoming
     const query = "UPDATE friends SET Status = ? WHERE User1ID = ? AND User2ID = ? AND Status = 'Pending'";
     connection.query(query, [requestData.decision, requestData.user1id, requestData.user2id], (err, results) => {
       if (err) {
         console.log("Error executing the query: " + err);
         return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
       } else {
-        return res.status(200).json({ message: "Response submitted" });
+        // Check to see if an outgoing request exists
+        connection.query(query, [requestData.decision, requestData.user2id, requestData.user1id], (err, results) => {
+          if (err) {
+            console.log("Error executing the query: " + err);
+            return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
+          } else {
+            console.log("results: " + results);
+            if(results.length > 0){
+              // Outgoing friend request does exist, update it
+              console.log("exe 1");
+              connection.query(query, [requestData.decision, requestData.user2id, requestData.user1id], (err, results) => {
+                if (err) {
+                  console.log("Error executing the query: " + err);
+                  return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
+                } else {
+                  return res.status(200).json({ message: "Request accepted" });
+                }
+              });
+            }else{
+              // Outgoing friend request does not exist. Create a new row
+              console.log("exe 2");
+              const createEntry = "INSERT INTO friends (`User1ID`, `User2ID`, `Status`) VALUES (?, ?, ?)";
+              connection.query(createEntry, [requestData.user1id, requestData.user2id, requestData.decision], (err, results) => {
+                if (err) {
+                  console.log("Error executing the query: " + err);
+                  return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
+                } else {
+                  return res.status(200).json({ message: "Request accepted" });
+                }
+              });
+            }
+          }
+        });
+        return res.status(200).json({ message: "Request accepted" });
+      }
+    });
+  } else if(requestData.user1id && requestData.user2id && requestData.decision === 'Rejected'){
+    // Request was rejected; delete existing request
+    const query = "DELETE FROM friends WHERE User1ID = ? AND User2ID = ? AND Status = 'Pending'";
+    connection.query(query, [requestData.user1id, requestData.user2id, requestData.decision], (err, results) => {
+      if (err) {
+        console.log("Error executing the query: " + err);
+        return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
+      } else {
+        return res.status(200).json({ message: "Request rejected" });
       }
     });
   } else {
@@ -181,6 +229,7 @@ router.post('/friend-requests/respond', (req, res) => {
   }
 });
 
+// TODO: redo
 router.post('/friends/remove', (req, res) => {
   const requestData = req.body;
   if (requestData.user1id && requestData.user2id) {
@@ -198,6 +247,7 @@ router.post('/friends/remove', (req, res) => {
   }
 });
 
+// TODO: redo
 router.get('/friends/all', (req, res) => {
   const id = req.query.id;
 
