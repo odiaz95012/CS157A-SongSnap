@@ -129,7 +129,7 @@ function CommentsContainer({ comments, postID }: CommentsContainerProps): JSX.El
                         <Col md={12}>
                             <div className='comments-content'>
                                 {currComments.map((comment, index) => (
-                                        <div className="comment">
+                                        <div className="comment" key={index}>
                                             <p>
                                                 {comment.Username}
                                                 <small className="text-muted ps-1">{formatDate(comment.Date)}</small>
