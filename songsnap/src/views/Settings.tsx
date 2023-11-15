@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import NavBar from "../components/NavBar";
 import Cookies from 'js-cookie';
 import { get } from 'http';
-import { Container } from "react-bootstrap";
+import {Container} from "react-bootstrap";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import axios from 'axios';
-import { PersonCheckFill, PersonFillDash} from 'react-bootstrap-icons';
+import {PersonCheckFill, PersonFillDash, PlusCircle} from 'react-bootstrap-icons';
 
 interface Friend {
     User1ID: number;
@@ -30,7 +30,14 @@ function Settings() {
     const [userData, setUserData] = useState<User | null>(null);
     const [friendRequests, setFriendRequests] = useState<Friend[]>([]);
     const [userFriends, setUserFriends] = useState<Friend[]>([]);
+    const [modal, setModal] = useState(false);
+    const getCookie = (name: string) => {
+        return Cookies.get(name);
+    }
 
+    const toggle = () => setModal(!modal);
+
+    // Rendering
     const renderFriendRequests = () => {
         return friendRequests.map((request, index) => (
             <div key={index} className="row bg-light rounded-2 py-2 mb-3">
@@ -54,18 +61,19 @@ function Settings() {
                     <a href={'user/' + request.User1ID}><h3 className='fw-bold text-black fw-bold mb-0'>{request.name}</h3></a>
                 </div>
                 <div className="col-2">
-                    <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => unAddFriend(request.User1ID)}><PersonFillDash className='icon' /></button>
+                    <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => unAddFriend(request.User2ID)}><PersonFillDash className='icon' /></button>
                 </div>
             </div>
         ));
     };
 
+    // API Interaction
     const respondFriendRequest = (ID: number, accept: string) => {
         if (userData) {
 
             const requestData = {
-                user1id: userData.ID,
-                user2id: ID,
+                user1id: ID,
+                user2id: userData.ID,
                 decision: accept
             };
 
@@ -111,10 +119,6 @@ function Settings() {
             console.error('userData is null');
         }
     };
-
-    const getCookie = (name: string) => {
-        return Cookies.get(name);
-    }
 
     const fetchUserData = async () => {
         // get user id from cookie

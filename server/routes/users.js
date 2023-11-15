@@ -174,7 +174,7 @@ router.get('/friend-requests/all', (req, res) => {
 
   if (id) {
     const query = `
-      SELECT friends.User1ID, friends.Date, users.name, users.username
+      SELECT friends.User1ID, friends.User2ID, friends.Date, users.name, users.username
       FROM friends, users
       WHERE friends.User1ID = users.id 
       AND friends.User2ID = ? 
@@ -267,7 +267,7 @@ router.get('/friends/all', (req, res) => {
 
   if (id) {
     const query = `
-      SELECT friends.User1ID, friends.Date, users.name, users.username
+      SELECT friends.User1ID, friends.User2ID, friends.Date, users.name, users.username
       FROM friends, users
       WHERE (friends.User1ID = ? OR friends.User2ID = ?)
       AND friends.Status = 'Accepted'
