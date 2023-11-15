@@ -211,10 +211,42 @@ router.get('/get/likes', (req, res) => {
   });
 });
 
+//get all comments for a post
+router.get('/get/comments', (req, res) => {
+  const postID = req.query.postID;
+  const query = `
+    SELECT c.Text, c.Date, u.Username
+    FROM comments c, users u
+    WHERE c.UserID = u.ID AND c.PostID = ?;
+  `;
+  connection.query(query, [postID], (err, results) => {
+    if (err) {
+      console.log("Error executing the query:" + err);
+      res.status(500).send("Error retrieving comments");
+    } else {
+      res.status(200).json(results);
+    }
+  });
+});
 
+//publish comment
+router.post('/publish/comment', (req, res) => {
+  const commentData = req.body;
+  if (!commentData.userID || !commentData.postID || !commentData.text) {
+    return res.status(400).send('Data provided is not valid');
+  }
 
+  const commentInsertQuery = "INSERT INTO comments (PostID, UserID, Text) VALUES (?, ?, ?)";
+  const commentValues = [commentData.postID, commentData.userID, commentData.text];
 
-
+  connection.query(commentInsertQuery, commentValues, (err) => {
+    if (err) {
+      console.log("Error executing the query:" + err);
+      return res.status(500).send("Error commenting on the post");
+    }
+    return res.status(200).json(commentData);
+  });
+});
 
 
 module.exports = router;
