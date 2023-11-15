@@ -164,7 +164,6 @@ router.get('/friend-requests/all', (req, res) => {
   }
 });
 
-// TODO: fully functional except outgoing friend requests can be accepted by themselves.
 router.post('/friend-requests/respond', (req, res) => {
   const requestData = req.body;
 
@@ -177,40 +176,16 @@ router.post('/friend-requests/respond', (req, res) => {
         console.log("Error executing the query: " + err);
         return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
       } else {
-        // Check to see if an outgoing request exists
-        connection.query(query, [requestData.decision, requestData.user2id, requestData.user1id], (err, results) => {
+        // create outgoing friendship relation
+        const createEntry = "INSERT INTO friends (`User1ID`, `User2ID`, `Status`) VALUES (?, ?, ?)";
+        connection.query(createEntry, [requestData.user2id, requestData.user1id, requestData.decision], (err, results) => {
           if (err) {
             console.log("Error executing the query: " + err);
             return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
           } else {
-            console.log("results: " + results);
-            if(results.length > 0){
-              // Outgoing friend request does exist, update it
-              console.log("exe 1");
-              connection.query(query, [requestData.decision, requestData.user2id, requestData.user1id], (err, results) => {
-                if (err) {
-                  console.log("Error executing the query: " + err);
-                  return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
-                } else {
-                  return res.status(200).json({ message: "Request accepted" });
-                }
-              });
-            }else{
-              // Outgoing friend request does not exist. Create a new row
-              console.log("exe 2");
-              const createEntry = "INSERT INTO friends (`User1ID`, `User2ID`, `Status`) VALUES (?, ?, ?)";
-              connection.query(createEntry, [requestData.user1id, requestData.user2id, requestData.decision], (err, results) => {
-                if (err) {
-                  console.log("Error executing the query: " + err);
-                  return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
-                } else {
-                  return res.status(200).json({ message: "Request accepted" });
-                }
-              });
-            }
+            return res.status(200).json({ message: "Request accepted" });
           }
         });
-        return res.status(200).json({ message: "Request accepted" });
       }
     });
   } else if(requestData.user1id && requestData.user2id && requestData.decision === 'Rejected'){
@@ -229,17 +204,23 @@ router.post('/friend-requests/respond', (req, res) => {
   }
 });
 
-// TODO: redo
 router.post('/friends/remove', (req, res) => {
   const requestData = req.body;
   if (requestData.user1id && requestData.user2id) {
-    const query = "UPDATE friends SET Status = 'Rejected' WHERE User1ID = ? AND User2ID = ? AND Status = 'Accepted'";
-    connection.query(query, [requestData.user1id, requestData.user2id], (err, results) => {
+    const query = "DELETE FROM friends WHERE User1ID = ? AND User2ID = ? AND Status = 'Accepted'";
+    connection.query(query, [requestData.user1id, requestData.user2id, requestData.decision], (err, results) => {
       if (err) {
         console.log("Error executing the query: " + err);
         return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
       } else {
-        return res.status(200).json({ message: "Response submitted" });
+        connection.query(query, [requestData.user2id, requestData.user1id, requestData.decision], (err, results) => {
+          if (err) {
+            console.log("Error executing the query: " + err);
+            return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
+          } else {
+            return res.status(200).json({ message: "Friendship removed" });
+          }
+        });
       }
     });
   } else {
