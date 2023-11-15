@@ -118,16 +118,32 @@ router.get('/findUser', (req, res) => {
 
 router.post('/friend-requests/create', (req, res) => {
   const requestData = req.body;
-  if (requestData.user1 && requestData.user2) {
-    const query = "INSERT INTO friends (User1ID, User2ID, Status, Date) VALUES (?, ?, ?, ?)";
-    const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' '); // Format the date
+  if (requestData.user1id && requestData.user2id) {
+    // Check to see if an incoming request from the user already exists. if so, create the friendship right away.
+    const check = "SELECT * FROM friends WHERE User1ID = ? AND User2ID = ? AND friends.Status = 'Pending'";
 
-    connection.query(query, [requestData.user1, requestData.user2, 'Pending', currentDate], (err, results) => {
+    connection.query(check, [requestData.user2id, requestData.user1id], (err, results) => {
       if (err) {
         console.log("Error executing the query: " + err);
         return res.status(500).json({ error: "000PS! Something happened :(" });
       } else {
-        return res.status(200).json({ message: "Friend request created successfully" });
+        if(results.length > 0){
+          // There is no incoming request present. Send request as normal
+          const query = "INSERT INTO friends (User1ID, User2ID, Status, Date) VALUES (?, ?, ?, ?)";
+          const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' '); // TODO: use SQL version
+
+          connection.query(query, [requestData.user1id, requestData.user2id, 'Pending', currentDate], (err, results) => {
+            if (err) {
+              console.log("Error executing the query: " + err);
+              return res.status(500).json({ error: "000PS! Something happened :(" });
+            } else {
+              return res.status(200).json({ message: "Friend request created successfully" });
+            }
+          });
+        }else{
+          // An incoming friend request already exists. Create a friendship.
+          return res.status(200).json({ message: "not implemented." });
+        }
       }
     });
   } else {
