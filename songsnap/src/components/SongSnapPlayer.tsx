@@ -4,6 +4,7 @@ import { Heart, HeartFill, Chat, ChatFill } from 'react-bootstrap-icons';
 import '../styles/SongSnapPlayerStyles.css';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import CommentsContainer from './CommentsContainer';
 interface User {
   Username: string;
   name: string;
@@ -19,12 +20,21 @@ interface DzPlayerProps {
 }
 
 
+
 const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTheme, caption, user, postID }) => {
+
+  interface Comment {
+    Text: string;
+    Date: string;
+    Username: string;
+  }
+
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [numLikes, setNumLikes] = useState<number>(0);
   const [isCommentOpen, setIsCommentOpen] = useState<boolean>(false);
   const [player, setPlayer] = useState<JSX.Element | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
 
   const formatBackgroundThemeTxt = (backgroundTheme: string): string => {
     return backgroundTheme.replace(/\s+/g, '').toLowerCase();
@@ -74,7 +84,6 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
   const getLikes = async() => {
     axios.get(`/posts/get/likes?postID=${postID}&userID=${await Cookies.get('userID')}`)
       .then((response) => {
-        console.log(response);
         if (response.data) {
           setNumLikes(response.data.likeCount);
           response.data.isLiked ? setIsLiked(true) : setIsLiked(false);
@@ -86,6 +95,13 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
         console.log(error);
       });
   };
+
+  const getComments = async () => {
+    axios.get(`/posts/get/comments?postID=${postID}`)
+      .then((response) => {
+        setComments(response.data);
+      }).catch((error) => {console.log(error)});
+  };
   
 
   const handleLikeEvent = () => {
@@ -96,12 +112,14 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
     setIsLiked(!isLiked);
   };
 
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const generatedPlayer = generatePlayer(trackID, dztype);
         setPlayer(generatedPlayer);
         await getLikes();
+        await getComments();
         setIframeLoaded(true);
       } catch (e) {
         console.log('Error generating player:', e);
@@ -111,7 +129,7 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
   }, [trackID, dztype]);
 
   return (
-    <div className='container text-center player-container my-3'>
+    <div className='container text-center'>
       {backgroundTheme && (
         <div className='theme-container'>
           {iframeLoaded && player ? (
@@ -130,7 +148,7 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
                 <Col md={4}>
                   <div className='like-count-container'>
                     <div className='like-count-icon'>
-                      <HeartFill className='icon' />
+                      <HeartFill className='icon'/>
                     </div>
                     <span className="form-label like-count">: {numLikes}</span>
                   </div>
@@ -145,12 +163,7 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
                 </Col>
                 <Col md={4}>
                   <a className="comment-btn" onClick={toggleComment}>
-                    {isCommentOpen ? (
-                      <ChatFill className='icon' />
-                    ) : (
-                      <Chat className='icon' />
-                    )
-                    }
+                    <CommentsContainer comments={comments} postID={postID}/>
                   </a>
                 </Col>
               </Row>
@@ -168,19 +181,6 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
                   </div>
                 </Col>
               </Row>
-              {isCommentOpen && (
-                <Row>
-
-                  <Col xs={6} md={12}>
-                    <div className='comments-container'>
-                      <input type='text' className="form-control publish-comment" placeholder='Add a comment...' />
-                      <div className='comments-content'>
-                        <p>Comment</p>
-                      </div>
-                    </div>
-                  </Col>
-                </Row>
-              )}
             </>
           ) : (
             <div className="loading-state">Loading...</div>

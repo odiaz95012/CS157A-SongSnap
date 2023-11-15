@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import axios, { AxiosRequestConfig } from 'axios';
+import axios from 'axios';
 import Modal from 'react-bootstrap/Modal';
 import { Row, Col, Button, Image } from 'react-bootstrap';
-import { Heart, HeartFill, Chat, ChatFill } from 'react-bootstrap-icons';
-import Cookies from 'js-cookie';
+import { Heart, HeartFill } from 'react-bootstrap-icons';
+import '../styles/StoryStyles.css';
 
 interface Story {
   PostID: number;
@@ -83,7 +83,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
               {iframeLoaded && player ? (
                 <>
                   <Row>
-                    <Col xs={12} md={12} style={{ width: '175px', height: '0px' }}>
+                    <Col xs={12} md={12} style={{ width: '175px', height: '0px', marginLeft: '25px' }}>
                       {player}
                     </Col>
                   </Row>

@@ -322,7 +322,7 @@ function Home() {
                         {/* Add main feed content here */}
                         <div className='row'>
                             <div className='container'>
-                                <div className='col-md-12 my-4'>
+                                <div className='col-md-12 my-5'>
                                     {isFeedsLoaded ? (
                                         generateFeedSongSnaps(mainFeedSongSnaps)
                                     ) : (
@@ -341,7 +341,7 @@ function Home() {
                         {/* Add friends feed content here */}
                         <div className='row'>
                             <div className='container'>
-                                <div className='col-md-12 my-4'>
+                                <div className='col-md-12 my-5'>
                                     {isFeedsLoaded ? (
                                         generateFeedSongSnaps(friendsFeedSongSnaps)
                                     ) : (
