@@ -3,7 +3,7 @@ var router = express.Router();
 const connection = require('../db');
 
 //get all prompts
-router.get('/', (req, res) => {
+router.get('/', (_, res) => {
     const query = "SELECT * FROM prompts";
     connection.query(query, (err, results) => {
       if (err) {
@@ -49,6 +49,7 @@ router.post('/submit', (req, res) => {
     }
 });
 
+// get all of a user's prompt submissions
 router.get('/all', (req, res) => {
     const id = req.query.id;
 
@@ -74,6 +75,19 @@ router.get('/all', (req, res) => {
     } else {
         return res.status(400).json({ error: 'Invalid data format' });
     }
+});
+
+//get a daily prompt
+router.get('/daily', (_, res) => {
+    const query = "SELECT * FROM prompts ORDER BY RAND() LIMIT 1;"
+    connection.query(query, (err, results) => {
+        if (err) {
+            console.error('Error executing the query: ' + err);
+            res.status(500).send('Error retrieving data');
+        } else {
+            res.json(results);
+        }
+    });
 });
 
 module.exports = router;

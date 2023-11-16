@@ -126,7 +126,7 @@ router.get('/get/activeStories', (req, res) => {
 
 //Get a user's song snaps
 router.get('/get/userSongSnaps', (req, res) => {
-  const userID = req.query.userID;
+  const userID = req.query.userID;  
 
   const query = "SELECT * FROM songsnaps WHERE UserID = ?";
   connection.query(query, [userID], (err, results) => {
@@ -215,7 +215,7 @@ router.get('/get/likes', (req, res) => {
 router.get('/get/comments', (req, res) => {
   const postID = req.query.postID;
   const query = `
-    SELECT c.Text, c.Date, u.Username
+    SELECT c.*, u.Username
     FROM comments c, users u
     WHERE c.UserID = u.ID AND c.PostID = ?;
   `;
@@ -239,14 +239,39 @@ router.post('/publish/comment', (req, res) => {
   const commentInsertQuery = "INSERT INTO comments (PostID, UserID, Text) VALUES (?, ?, ?)";
   const commentValues = [commentData.postID, commentData.userID, commentData.text];
 
-  connection.query(commentInsertQuery, commentValues, (err) => {
+  connection.query(commentInsertQuery, commentValues, (err, result) => {
     if (err) {
       console.log("Error executing the query:" + err);
       return res.status(500).send("Error commenting on the post");
     }
-    return res.status(200).json(commentData);
+    // Send the inserted comment data along with the ID
+    const commentId = result.insertId; // Retrieve the comment ID using insertId
+
+    // Send the inserted comment data along with the ID
+    const commentWithId = {
+      ...commentData,
+      commentID: commentId
+    };
+    return res.status(200).json(commentWithId);
   });
 });
+
+//delete comment
+router.post('/delete/comment', (req, res) => {
+  const { commentID} = req.body;
+  if (!commentID) {
+    return res.status(400).send('Please provide the comment ID.');
+  }
+  const deleteQuery = "DELETE FROM comments WHERE ID = ?";
+  connection.query(deleteQuery, [commentID], (deleteErr) => {
+    if (deleteErr) {
+      console.log("Error deleting comment:", deleteErr);
+      return res.status(500).send("Error deleting comment");
+    }
+    return res.status(200).send("Comment deleted successfully");
+  });
+});
+
 
 
 module.exports = router;
