@@ -25,7 +25,7 @@ router.get('/id', (req, res) => {
     return res.status(400).send('No ID provided');
   }
 
-  const query = `SELECT name, Email, ProfilePicture, Username FROM users WHERE ID = ${id}`;
+  const query = `SELECT * FROM users WHERE ID = ${id}`;
   connection.query(query, (err, results) => {
     if (err) {
       console.error('Error executing the query: ' + err);

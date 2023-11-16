@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Button, Image } from 'react-bootstrap';
-import { Heart, HeartFill, Chat, ChatFill } from 'react-bootstrap-icons';
+import { Row, Col, Image } from 'react-bootstrap';
+import { HeartFill } from 'react-bootstrap-icons';
 import '../styles/SongSnapPlayerStyles.css';
 import axios from 'axios';
 import Cookies from 'js-cookie';
@@ -17,16 +17,19 @@ interface DzPlayerProps {
   caption?: string;
   user: User;
   postID: number;
+  ownerUserID: number;
 }
 
 
 
-const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTheme, caption, user, postID }) => {
+const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTheme, caption, user, postID, ownerUserID }) => {
 
   interface Comment {
     Text: string;
     Date: string;
     Username: string;
+    ID: number;
+    UserID: number;
   }
 
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
@@ -163,7 +166,7 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
                 </Col>
                 <Col md={4}>
                   <a className="comment-btn" onClick={toggleComment}>
-                    <CommentsContainer comments={comments} postID={postID}/>
+                    <CommentsContainer comments={comments} postID={postID} postOwnerUserID={ownerUserID}/>
                   </a>
                 </Col>
               </Row>
