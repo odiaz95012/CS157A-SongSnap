@@ -7,6 +7,8 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import axios from 'axios';
 import {PersonCheckFill, PersonFillDash, PlusCircle} from 'react-bootstrap-icons';
+import Modal from "react-bootstrap/Modal";
+import Button from "react-bootstrap/Button";
 
 interface Friend {
     User1ID: number;
@@ -31,6 +33,26 @@ function Settings() {
     const [friendRequests, setFriendRequests] = useState<Friend[]>([]);
     const [userFriends, setUserFriends] = useState<Friend[]>([]);
     const [modal, setModal] = useState(false);
+    const [show, setShow] = useState<boolean>(false);
+
+    const handleClose = () => setShow(false);
+    const handleShow = () => setShow(true);
+
+    const handleSubmission = () => {
+        handleClose(); // Close the modal
+        // axios.post('users/friend-requests/addByUsername', requestData)
+        //     .then(response => {
+        //         console.log("Response submitted");
+        //         // You might want to update the state or do something else upon success
+        //     })
+        //     .catch(error => {
+        //         console.error("Error responding to friend request:", error);
+        //         // Handle errors accordingly
+        //     })
+        //     .finally(() => {
+        //         fetchUserData();
+        //     });
+    };
     const getCookie = (name: string) => {
         return Cookies.get(name);
     }
@@ -169,9 +191,9 @@ function Settings() {
                     <li className='nav-item' role='presentation'>
                         <button className='nav-link active' id='home-tab' data-bs-toggle='tab' data-bs-target='#home-tab-pane' type='button' role='tab' aria-controls='home-tab-pane' aria-selected='true'>Home</button>
                     </li>
-                    <li className='nav-item' role='presentation'>
-                        <button className='nav-link' id='profile-tab' data-bs-toggle='tab' data-bs-target='#profile-tab-pane' type='button' role='tab' aria-controls='profile-tab-pane' aria-selected='false'>Profile</button>
-                    </li>
+                    {/*<li className='nav-item' role='presentation'>*/}
+                    {/*    <button className='nav-link' id='profile-tab' data-bs-toggle='tab' data-bs-target='#profile-tab-pane' type='button' role='tab' aria-controls='profile-tab-pane' aria-selected='false'>Profile</button>*/}
+                    {/*</li>*/}
                     <li className='nav-item' role='presentation'>
                         <button className='nav-link' id='friends-tab' data-bs-toggle='tab' data-bs-target='#friends-tab-pane' type='button' role='tab' aria-controls='friends-tab-pane' aria-selected='false'>Friends</button>
                     </li>
@@ -212,7 +234,7 @@ function Settings() {
                             </div>
                         </div>
                     </div>
-                    <div className='tab-pane fade' id='profile-tab-pane' role='tabpanel' aria-labelledby='profile-tab' tabIndex={0}>2</div>
+                    {/*<div className='tab-pane fade' id='profile-tab-pane' role='tabpanel' aria-labelledby='profile-tab' tabIndex={0}>2</div>*/}
                     <div className='tab-pane fade' id='friends-tab-pane' role='tabpanel' aria-labelledby='friends-tab' tabIndex={0}>
                         <Container className="bg-light rounded-4 p-3 mt-3">
                             <Row>
@@ -243,6 +265,23 @@ function Settings() {
                     <div className='tab-pane fade' id='disabled-tab-pane' role='tabpanel' aria-labelledby='disabled-tab' tabIndex={0}>4</div>
                 </div>
             </div>
+
+            <Modal show={show} onHide={handleClose}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Send Friend Request</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={handleClose}>
+                        Close
+                    </Button>
+                    <Button type='submit' variant="primary" onClick={handleSubmission}>
+                        Send Request
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </>
     );
 }
