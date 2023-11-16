@@ -97,7 +97,7 @@ function NavBar() {
                             </div>
                             <li className="nav-item"><button className="btn btn-primary mx-2">Upload Prompt</button></li>
                             <li className="nav-item mx-2">
-                                <ProfileDropdown />
+                                <ProfileDropdown id={Cookies.get('userID')!}/>
                             </li>
                         </ul>
                     </div>
