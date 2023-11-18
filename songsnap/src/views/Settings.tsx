@@ -24,8 +24,14 @@ interface User {
     Email: string;
     Password: string;
     Role: string;
-    ProfilePicture: string;
     name: string;
+}
+
+interface UserForm {
+    name: string;
+    username: string;
+    email: string;
+    password: string;
 }
 
 function Settings() {
@@ -34,6 +40,12 @@ function Settings() {
     const [userFriends, setUserFriends] = useState<Friend[]>([]);
     const [modal, setModal] = useState(false);
     const [show, setShow] = useState<boolean>(false);
+    const [formData, setFormData] = useState<UserForm>({
+        name: '',
+        email: '',
+        username: '',
+        password: ''
+    });
 
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
@@ -216,12 +228,17 @@ function Settings() {
 
                                     <div className="form-group">
                                         <label htmlFor="username">Username:</label>
-                                        <input type="text" className="form-control" id="username" name="username" placeholder="Enter username" />
+                                        <input type="text" className="form-control" id="username" name="username" placeholder={userData?.Username} />
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="name">Name:</label>
+                                        <input type="text" className="form-control" id="name" name="username" placeholder={userData?.name} />
                                     </div>
 
                                     <div className="form-group mt-3">
                                         <label htmlFor="email">Email address:</label>
-                                        <input type="email" className="form-control" id="email" name="email" placeholder="Enter email" />
+                                        <input type="email" className="form-control" id="email" name="email" placeholder={userData?.Email} />
                                     </div>
 
                                     <div className="form-group mt-3">
