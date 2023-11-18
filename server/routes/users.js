@@ -3,8 +3,6 @@ var router = express.Router();
 const connection = require('../db');
 const {request} = require("express");
 
-
-
 //get all users
 router.get('/', (req, res) => {
   const query = "SELECT * FROM users";
@@ -25,7 +23,7 @@ router.get('/id', (req, res) => {
     return res.status(400).send('No ID provided');
   }
 
-  const query = `SELECT name, Email, ProfilePicture, Username FROM users WHERE ID = ${id}`;
+  const query = `SELECT ID, name, Email, ProfilePicture, Username FROM users WHERE ID = ${id}`;
   connection.query(query, (err, results) => {
     if (err) {
       console.error('Error executing the query: ' + err);
@@ -36,7 +34,7 @@ router.get('/id', (req, res) => {
   });
 });
 
-
+// Edit user details
 //Logs user into system
 router.post('/login', (req, res) => {
   const username = req.body.username;
