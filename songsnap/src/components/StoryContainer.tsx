@@ -102,7 +102,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
                   <Row className="mt-2" >
                     <Col xs={12} md={4} style={{ width: '300px', height: '0px' }}>
                       <div className='caption-container'>
-                        <div className='caption-content' text-center my-3>
+                        <div className='caption-content text-center my-3' >
                           <p>{story?.Caption}</p>
                         </div>
                       </div>
