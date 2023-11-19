@@ -112,16 +112,8 @@ router.post('/createAccount', async (req, res) => {
     ) {
       // Assign a default image if not provided
       if (!accountData.profilePicture) {
-        // Retrieve the default image from S3
-        const params = {
-          Bucket: 'songsnap-profile-pictures',
-          Key: 'profile_default.png'
-        };
-
-        const defaultImage = await s3.getObject(params).promise();
-
-        // Set the profile picture to the default image data
-        accountData.profilePicture = defaultImage.Body.toString('base64'); // Convert image buffer to base64 string
+        // Set the profile picture to the default image link
+        accountData.profilePicture = 'https://songsnap-profile-pictures.s3.us-west-1.amazonaws.com/profile_default.png';
       }
 
       const query = "INSERT INTO users (name, Username, Email, Password, ProfilePicture) VALUES (?, ?, ?, ?, ?)";
@@ -143,6 +135,7 @@ router.post('/createAccount', async (req, res) => {
     res.status(500).send("Error creating the user");
   }
 });
+
 
 
 
