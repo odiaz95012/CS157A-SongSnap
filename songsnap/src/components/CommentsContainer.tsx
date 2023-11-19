@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Offcanvas, Row, Col, Form, Button } from 'react-bootstrap';
+import { Offcanvas, Row, Col, Form, Button, FloatingLabel } from 'react-bootstrap';
 import { Chat, ChatFill, Trash } from "react-bootstrap-icons";
 import '../styles/CommentsContainerStyles.css';
 import axios from "axios";
@@ -126,17 +126,17 @@ function CommentsContainer({ comments, postID, postOwnerUserID }: CommentsContai
                     <Row>
                         <Col md={12}>
                             <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
-                                <div className="d-flex justify-content-center pe-4">
-                                    <Form.Label className="lead">Leave a comment</Form.Label>
+                                <div className="d-flex justify-content-start pe-4">
+                                    <Form.Label className="lead">Comment</Form.Label>
                                 </div>
-                                <Form.Control
-                                    as="textarea"
-                                    className="publish-comment"
-                                    rows={3}
-                                    placeholder="Add a comment..."
-                                    value={comment}
+                                <FloatingLabel
+                                    controlId="floatingTextarea"
+                                    label="Leave a comment"
+                                    className="mb-3"
                                     onChange={handleCommentChange}
-                                />
+                                >
+                                    <Form.Control as="textarea" placeholder="Leave a comment here" />
+                                </FloatingLabel>
                                 <div className="d-flex justify-content-center">
                                     <Button variant="primary" size="sm" onClick={publishComment}>Publish Comment</Button>
                                 </div>
@@ -154,13 +154,13 @@ function CommentsContainer({ comments, postID, postOwnerUserID }: CommentsContai
                                             {comment.Username}
                                             <small className="text-muted ps-1">{formatDate(comment.Date)}</small>
                                             {(comment.UserID === currUserID || currUserID === postOwnerUserID) && (
-                                            <button onClick={() => deleteComment(comment.ID)} className="btn btn-sm btn-danger ms-2">
-                                                <Trash />
-                                            </button>
-                                        )}
+                                                <button onClick={() => deleteComment(comment.ID)} className="btn btn-sm btn-danger ms-2">
+                                                    <Trash />
+                                                </button>
+                                            )}
                                         </p>
                                         <p className="lead">{comment.Text}</p>
-                                       
+
                                     </div>
 
                                 ))}

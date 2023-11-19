@@ -272,6 +272,42 @@ router.post('/delete/comment', (req, res) => {
   });
 });
 
+//favorite a post
+router.post('/favorite', (req, res) => {
+  const favoriteData = req.body;
+  if (!favoriteData.userID || !favoriteData.songSnapID) {
+    return res.status(400).send('Please provide all the required data.');
+  }
+  const favoriteInsertQuery = "INSERT INTO pinned(UserID, SongSnapID) VALUES (?, ?)";
+  const favoriteValues = [favoriteData.userID, favoriteData.songSnapID];
+
+  connection.query(favoriteInsertQuery, favoriteValues, (err) => {
+    if (err) {
+      console.log("Error executing the query:" + err);
+      return res.status(500).send("Error favoriting the post");
+    }
+    return res.status(200).json(favoriteData);
+  });
+});
+
+//unfavorite a post
+router.post('/unfavorite', (req, res) => {
+  const favoriteData = req.body;
+  if (!favoriteData.userID || !favoriteData.songSnapID) {
+    return res.status(400).send('Please provide all the required data.');
+  }
+  const favoriteDeleteQuery = "DELETE FROM pinned WHERE UserID = ? AND SongSnapID = ?";
+  const favoriteValues = [favoriteData.userID, favoriteData.songSnapID];
+
+  connection.query(favoriteDeleteQuery, favoriteValues, (err) => {
+    if (err) {
+      console.log("Error executing the query:" + err);
+      return res.status(500).send("Error unfavoriting the post");
+    }
+    return res.status(200).json(favoriteData);
+  });
+});
+
 
 
 module.exports = router;

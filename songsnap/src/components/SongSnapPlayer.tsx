@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Image } from 'react-bootstrap';
-import { HeartFill } from 'react-bootstrap-icons';
+import { HeartFill, Bookmark, BookmarkFill } from 'react-bootstrap-icons';
 import '../styles/SongSnapPlayerStyles.css';
 import axios from 'axios';
 import Cookies from 'js-cookie';
@@ -8,7 +8,7 @@ import CommentsContainer from './CommentsContainer';
 interface User {
   Username: string;
   name: string;
-  ProfilePicture: string
+  ProfilePicture: string;
 }
 interface DzPlayerProps {
   dztype: string;
@@ -34,6 +34,7 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
 
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
   const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [isFavorited, setIsFavorited] = useState<boolean>(false);
   const [numLikes, setNumLikes] = useState<number>(0);
   const [isCommentOpen, setIsCommentOpen] = useState<boolean>(false);
   const [player, setPlayer] = useState<JSX.Element | null>(null);
@@ -84,7 +85,7 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
 
 
 
-  const getLikes = async() => {
+  const getLikes = async () => {
     axios.get(`/posts/get/likes?postID=${postID}&userID=${await Cookies.get('userID')}`)
       .then((response) => {
         if (response.data) {
@@ -103,9 +104,9 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
     axios.get(`/posts/get/comments?postID=${postID}`)
       .then((response) => {
         setComments(response.data);
-      }).catch((error) => {console.log(error)});
+      }).catch((error) => { console.log(error) });
   };
-  
+
 
   const handleLikeEvent = () => {
 
@@ -113,6 +114,30 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
     isLiked ? unlike() : like();
     // Toggle the isLiked state
     setIsLiked(!isLiked);
+  };
+
+  const favorite = async () => {
+    axios.post('/posts/favorite', {
+      songSnapID: postID,
+      userID: await Cookies.get('userID')
+    }).catch((error) => {
+      console.log(error);
+    })
+  };
+  const unfavorite = async () => {
+    axios.post('/posts/unfavorite', {
+      songSnapID: postID,
+      userID: await Cookies.get('userID')
+    }).catch((error) => {
+      console.log(error);
+    })
+  };
+
+  const handleFavoriteEvent = () => {
+    // If isFavorited is true, call unfavorite; if false, call favorite
+    isFavorited ? unfavorite() : favorite();
+    // Toggle the isFavorited state
+    setIsFavorited(!isFavorited);
   };
 
 
@@ -151,7 +176,7 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
                 <Col md={4}>
                   <div className='like-count-container'>
                     <div className='like-count-icon'>
-                      <HeartFill className='icon'/>
+                      <HeartFill className='icon' />
                     </div>
                     <span className="form-label like-count">: {numLikes}</span>
                   </div>
@@ -166,7 +191,17 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
                 </Col>
                 <Col md={4}>
                   <a className="comment-btn" onClick={toggleComment}>
-                    <CommentsContainer comments={comments} postID={postID} postOwnerUserID={ownerUserID}/>
+                    <CommentsContainer comments={comments} postID={postID} postOwnerUserID={ownerUserID} />
+                  </a>
+                </Col>
+                <Col md={4}>
+                  <a className="fav-post-btn" onClick={handleFavoriteEvent}>
+                    {isFavorited ? (
+                      <BookmarkFill className='fav-icon' />
+                    ) : (
+                      <Bookmark className='fav-icon' />
+                    )
+                    }
                   </a>
                 </Col>
               </Row>
