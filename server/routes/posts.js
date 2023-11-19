@@ -77,7 +77,8 @@ router.post('/create/story', (req, res) => {
 router.get('/get/songSnaps', (_, res) => {
   const query = `SELECT ss.*, u.Username, u.name, u.ProfilePicture
                 FROM songsnaps ss, users u
-                WHERE ss.UserID = u.ID`;
+                WHERE ss.UserID = u.ID
+                ORDER BY ss.Date DESC;`;
   connection.query(query, (err, results) => {
     if (err) {
       console.log("Error executing the query:" + err);
@@ -97,8 +98,8 @@ router.get('/get/friendSongSnaps', (req, res) => {
     FROM songsnaps ss
     JOIN friends f ON ss.UserID = f.User2ID
     JOIN users u ON ss.UserID = u.ID
-    WHERE f.User1ID = ? AND f.Status = 'Accepted';
-  `;
+    WHERE f.User1ID = ? AND f.Status = 'Accepted'
+    ORDER BY ss.Date DESC;`;
 
   connection.query(query, [userID], (err, results) => {
     if (err) {
@@ -128,7 +129,7 @@ router.get('/get/activeStories', (req, res) => {
 router.get('/get/userSongSnaps', (req, res) => {
   const userID = req.query.userID;  
 
-  const query = "SELECT * FROM songsnaps WHERE UserID = ?";
+  const query = "SELECT * FROM songsnaps WHERE UserID = ? ORDER BY Date DESC";
   connection.query(query, [userID], (err, results) => {
     if (err) {
       console.log("Error executing the query:" + err);
@@ -215,9 +216,10 @@ router.get('/get/likes', (req, res) => {
 router.get('/get/comments', (req, res) => {
   const postID = req.query.postID;
   const query = `
-    SELECT c.*, u.Username
+    SELECT c.*, u.Username, u.ProfilePicture
     FROM comments c, users u
-    WHERE c.UserID = u.ID AND c.PostID = ?;
+    WHERE c.UserID = u.ID AND c.PostID = ?
+    ORDER BY c.Date DESC;
   `;
   connection.query(query, [postID], (err, results) => {
     if (err) {

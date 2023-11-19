@@ -18,11 +18,12 @@ interface DzPlayerProps {
   user: User;
   postID: number;
   ownerUserID: number;
+  currUserProfilePicture: string;
 }
 
 
 
-const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTheme, caption, user, postID, ownerUserID }) => {
+const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTheme, caption, user, postID, ownerUserID, currUserProfilePicture }) => {
 
   interface Comment {
     Text: string;
@@ -30,6 +31,7 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
     Username: string;
     ID: number;
     UserID: number;
+    ProfilePicture: string;
   }
 
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
@@ -180,7 +182,16 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
                     </div>
                     <span className="form-label like-count">: {numLikes}</span>
                   </div>
-
+                </Col>
+                <Col>
+                  <div className='profile-picture-container'>
+                      <Image
+                        src={user.ProfilePicture}
+                        alt="Profile Picture"
+                        className='profile-picture'
+                        roundedCircle
+                        />
+                  </div>
                 </Col>
               </Row>
               <Row>
@@ -191,7 +202,7 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
                 </Col>
                 <Col md={4}>
                   <a className="comment-btn" onClick={toggleComment}>
-                    <CommentsContainer comments={comments} postID={postID} postOwnerUserID={ownerUserID} />
+                    <CommentsContainer comments={comments} postID={postID} postOwnerUserID={ownerUserID} currUserProfilePicture={currUserProfilePicture}/>
                   </a>
                 </Col>
                 <Col md={4}>
