@@ -13,7 +13,9 @@ interface Story {
   Caption: string;
   Duration: number;
   UserID: number;
+  profilePicture: string;
 }
+
 
 interface StoryModalProps {
   show: boolean;
@@ -21,8 +23,7 @@ interface StoryModalProps {
   story: Story | null;
 }
 
-// Define StoryModal component
-// ... (Imports remain the same)
+
 
 const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => {
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
@@ -121,20 +122,37 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
   );
 };
 
-const StoriesContainer: React.FC = () => {
+
+interface User {
+  Username: string;
+  name: string;
+  ProfilePicture: string;
+  ID: number;
+}
+interface StoriesContainerProps {
+  userDetails: User;
+}
+
+const StoriesContainer: React.FC<StoriesContainerProps> = ({ userDetails }: StoriesContainerProps) => {
   const [activeStories, setActiveStories] = useState<Story[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
 
   useEffect(() => {
     axios.get<Story[]>('/posts/get/activeStories')
-      .then(response => {
-        setActiveStories(response.data);
+      .then(async (response) => {
+        const storiesWithProfilePictures = await Promise.all(response.data.map(async (story) => {
+          const userResponse = await axios.get<User>(`/users/id?id=${story.UserID}`);
+          const storyWithProfilePicture = { ...story, profilePicture: userResponse.data.ProfilePicture };
+          return storyWithProfilePicture;
+        }));
+        setActiveStories(storiesWithProfilePictures);
       })
       .catch(error => {
         console.error('Error fetching active stories:', error);
       });
   }, []);
+
 
   const handleImageClick = (story: Story) => {
     setSelectedStory(story);
@@ -144,6 +162,7 @@ const StoriesContainer: React.FC = () => {
   const handleCloseModal = () => {
     setShowModal(false);
   };
+
 
   return (
     <div className="container mt-3">
@@ -159,8 +178,9 @@ const StoriesContainer: React.FC = () => {
           >
             <Image
               className="avatar"
-              src={require('../images/logo.png')}
+              src={story.profilePicture}
               alt={`Logo ${story.PostID}`}
+              roundedCircle
             />
           </div>
         ))}

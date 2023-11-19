@@ -8,25 +8,15 @@ import SongSnapForm from '../components/SongSnapForm';
 import Cookies from 'js-cookie';
 import StoriesContainer from '../components/StoryContainer';
 
-//TODO: FIGURE OUT HOW TO KEEP THE PROMPT OF THE DAY TO REMAIN CONSTANT FOR THE DAY AND NOT CHANGE WHEN THE PAGE IS REFRESHED
 
 function Home() {
     const [activeView, setActiveView] = useState<string>('main-feed');
-    const [songName, setSongName] = useState<string>('');
-    const [songID, setSongID] = useState<number | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [songSnapPlayer, setSongSnapPlayer] = useState<JSX.Element | null>(null);
-    const [isPlayerVisible, setPlayerVisible] = useState<boolean>(false);
-    const [isFeedsGenerated, setIsFeedsGenerated] = useState<boolean>(false);
+
 
     const handleActiveFeedChange = (view: string) => {
         setActiveView(view);
     };
 
-    const handleSongName = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let song = e.target.value;
-        setSongName(song.replaceAll(' ', '%20'));
-    };
 
     const options: AxiosRequestConfig = {
         method: 'GET',
@@ -46,7 +36,6 @@ function Home() {
                     q: `${songName} ${artistName}`, // Set the song and artist name as a parameter
                 },
             });
-            setSongID(response.data.data[0].id);
             return response.data.data[0].id;
         } catch (error) {
             console.error(error);
@@ -55,9 +44,6 @@ function Home() {
 
 
     const generatePlayer = async (backgroundTheme: string, caption: string, songID: number, userDetails: User, postID: number): Promise<JSX.Element | void> => {
-        // Set isLoading to true when generating the player
-        setIsLoading(true);
-
         try {
             if (songID) {
                 const player = <SongSnapPlayer
@@ -69,13 +55,12 @@ function Home() {
                     postID={postID}
                     ownerUserID={userDetails.ID}
                 />;
-                setSongSnapPlayer(player);
+
 
             }
         } catch (error) {
             console.error(error);
         }
-        setIsLoading(false);
     };
 
 
@@ -111,9 +96,7 @@ function Home() {
     };
 
     const generateSongSnap = (backgroundTheme: string, caption: string, songID: number, userDetails: User, postID: number) => {
-
         generatePlayer(backgroundTheme, caption, songID, userDetails, postID);
-        setPlayerVisible(true);
     };
 
     interface SongSnapInputData {
@@ -134,7 +117,6 @@ function Home() {
     });
 
     const handleSongSnapUpload = (formData: SongSnapInputData) => {
-        // Do something with the form data, e.g., send it to an API or update the state
         setSongSnapData(formData);
     };
 
@@ -209,27 +191,45 @@ function Home() {
         Theme: string;
     }
 
-    const [dailyPrompt, setDailyPrompt] = useState<Prompt>({ ID: 0, PromptText: '', Theme: '' });
+    const createDailyPromptCookie = (name: string, value: object) => {
+        const now = new Date();
+        const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0); // Set to next day midnight
 
-    const getDailyPrompt = async () => {
-        axios.get('/prompts/daily')
-            .then((response) => {
-                setDailyPrompt(response.data[0]);
-            }).catch((error) => {
-                console.log(error);
-            })
+        Cookies.set(name, JSON.stringify(value), { expires: midnight, path: '/' });
     };
 
-    useEffect(() => { console.log(dailyPrompt) }, [dailyPrompt])
+    const getStoredDailyPrompt = () => {
+        const storedPrompt = Cookies.get('dailyPrompt');
+        return storedPrompt ? JSON.parse(storedPrompt) : { ID: 0, PromptText: '', Theme: '' };
+    };
+
+
+    const [dailyPrompt, setDailyPrompt] = useState<Prompt>(getStoredDailyPrompt());
+
+    const getDailyPrompt = () => {
+        // If we already got the prompt of the day, don't get it again
+        if (dailyPrompt.ID !== 0) return;
+        axios.get('/prompts/prompt-of-the-day')
+            .then((response) => {
+                console.log(response.data);
+                const prompt = response.data;
+                setDailyPrompt(prompt);
+                createDailyPromptCookie('dailyPrompt', prompt);
+            }).catch((error) => {
+                console.log(error);
+            });
+    };
+
 
 
 
     useEffect(() => {
-        const getUserDetails = async () => {
+        const getUserDetailsAndDailyPrompt = async () => {
             try {
                 const userID = await getCookie('userID');
                 const response = await axios.get('/users/id?id=' + userID);
                 setCurrUserDetails(response.data);
+                getDailyPrompt();
 
             } catch (error) {
                 console.error(error);
@@ -248,10 +248,12 @@ function Home() {
                 console.error(error);
             }
         };
-        getDailyPrompt();
-        getUserDetails();
+
+        getUserDetailsAndDailyPrompt();
         populateFeeds();
     }, []);
+
+    useEffect(() => {console.log(currUserDetails)}, [currUserDetails])
 
 
 
@@ -295,7 +297,7 @@ function Home() {
                     <div className="row gx-5 justify-content-center">
                         <div className="col-lg-6">
                             <div className="text-center my-5">
-                                {dailyPrompt && (   
+                                {dailyPrompt && (
                                     <>
                                         <h1 className="display-5 fw-bolder text-white mb-2">Prompt of the Day</h1>
                                         <p className="lead text-white mb-4">{dailyPrompt.PromptText}</p>
@@ -317,7 +319,7 @@ function Home() {
                 </div>
             </header>
             {/* Stories Container */}
-            <StoriesContainer />
+            <StoriesContainer userDetails={currUserDetails}/>
 
             {/* Feed Container */}
             <div className="d-flex-1 text-center justify-content-center align-items-center mt-3">
@@ -341,6 +343,8 @@ function Home() {
                     </div>
                 </div>
             </div>
+
+
 
             <div className="container overflow-auto text-center d-flex justify-content-center align-items-center h-100 feed-container my-3">
                 {/* Main Feed View */}
