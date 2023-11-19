@@ -12,13 +12,15 @@ interface Comment {
     Username: string;
     ID: number;
     UserID: number;
+    ProfilePicture: string;
 }
 interface CommentsContainerProps {
     comments: Comment[];
     postID: number;
     postOwnerUserID: number;
+    currUserProfilePicture: string;
 }
-function CommentsContainer({ comments, postID, postOwnerUserID }: CommentsContainerProps): JSX.Element {
+function CommentsContainer({ comments, postID, postOwnerUserID, currUserProfilePicture }: CommentsContainerProps): JSX.Element {
 
     const [show, setShow] = useState(false);
     const [comment, setComment] = useState<string>('');
@@ -55,7 +57,8 @@ function CommentsContainer({ comments, postID, postOwnerUserID }: CommentsContai
                         Date: new Date().toISOString(),
                         Username: username,
                         ID: result.data.commentID,
-                        UserID: parseInt(userID!)
+                        UserID: parseInt(userID!),
+                        ProfilePicture: currUserProfilePicture
                     }
                 ]);
             }
@@ -150,6 +153,16 @@ function CommentsContainer({ comments, postID, postOwnerUserID }: CommentsContai
                             <div className='comments-content'>
                                 {currComments.map((comment, index) => (
                                     <div className="comment" key={index}>
+                                        <div className="mb-1">
+                                            <img
+                                                src={comment.ProfilePicture}
+                                                alt="Profile Picture"
+                                                className='profile-picture'
+                                                width="25px"
+                                                height="25px"
+                                                style={{ borderRadius: '50%' }}
+                                            />
+                                        </div>
                                         <p>
                                             {comment.Username}
                                             <small className="text-muted ps-1">{formatDate(comment.Date)}</small>

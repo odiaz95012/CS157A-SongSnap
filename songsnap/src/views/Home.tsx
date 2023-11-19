@@ -54,6 +54,7 @@ function Home() {
                     user={userDetails}
                     postID={postID}
                     ownerUserID={userDetails.ID}
+                    currUserProfilePicture={userDetails.ProfilePicture}
                 />;
 
 
@@ -253,7 +254,6 @@ function Home() {
         populateFeeds();
     }, []);
 
-    useEffect(() => {console.log(currUserDetails)}, [currUserDetails])
 
 
 
@@ -267,7 +267,7 @@ function Home() {
                 ProfilePicture: songSnap.ProfilePicture,
                 ID: songSnap.UserID
             };
-
+    
             return (
                 <div className='player-container' key={songSnap.PostID}>
                     <SongSnapPlayer
@@ -278,11 +278,13 @@ function Home() {
                         user={profileDetails}
                         postID={songSnap.PostID}
                         ownerUserID={songSnap.UserID}
+                        currUserProfilePicture={currUserDetails.ProfilePicture}
                     />
                 </div>
             );
         });
     };
+    
 
 
 
