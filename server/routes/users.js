@@ -38,7 +38,6 @@ router.get('/id', (req, res) => {
 router.post('/edit', async (req, res) => {
   const requestData = req.body;
 
-
   if (requestData.id) {
     const findUser = `SELECT * FROM users WHERE ID = ?`;
     connection.query(findUser, [requestData.id], async (err, results) => {
@@ -51,25 +50,31 @@ router.post('/edit', async (req, res) => {
         let setClauses = [];
         let queryParams = [];
 
+        let changes = [];
+
         if (requestData.username && requestData.username.length > 5) {
           setClauses.push("Username = ?");
           queryParams.push(requestData.username);
+          changes.push("username");
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (requestData.email && requestData.email.length > 6 && emailRegex.test(requestData.email)) {
           setClauses.push("Email = ?");
           queryParams.push(requestData.email);
+          changes.push("email")
         }
 
         if (requestData.name && requestData.name.length > 5) {
           setClauses.push("name = ?");
           queryParams.push(requestData.name);
+          changes.push("name");
         }
 
         if (requestData.password && requestData.password.length > 3) {
           setClauses.push("Password = ?");
           queryParams.push(requestData.password);
+          changes.push("password");
         }
 
         dynamicQuery += setClauses.join(", ");
@@ -82,7 +87,7 @@ router.post('/edit', async (req, res) => {
               console.log("Error executing the query: " + err);
               return res.status(500).json({ error: 'Invalid query' });
             } else {
-              return res.status(500).json({ "message": "user details updated" });
+              return res.status(500).json({ "message": "user details updated", "changes": changes });
             }
           });
 
