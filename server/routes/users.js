@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const connection = require('../db');
-const {request} = require("express");
+const {request, response} = require("express");
 
 //get all users
 router.get('/', (req, res) => {
@@ -35,6 +35,36 @@ router.get('/id', (req, res) => {
 });
 
 // Edit user details
+router.post('/edit', (req, res) => {
+  const requestData = req.body;
+  if(requestData.id){
+    let responseCollector = "";
+    let status = 200;
+
+    // Edit each field individually if it is not null and valid
+    if(requestData.username && requestData.username.length > 5){
+      responseCollector += "username";
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(requestData.email && requestData.email.length > 6 && emailRegex.test(requestData.email)){
+      responseCollector += "email";
+    }
+
+    if(requestData.name && requestData.name.length > 5){
+      responseCollector += "name";
+    }
+
+    if(requestData.password && requestData.password.length > 3){
+      responseCollector += "password";
+    }
+
+    return res.status(status).json({ responseCollector });
+  }else {
+      return res.status(400).json({ error: 'ID field is required' });
+  }
+});
+
 //Logs user into system
 router.post('/login', (req, res) => {
   const username = req.body.username;
@@ -85,7 +115,6 @@ router.post('/createAccount', (req, res) => {
   }
 });
 
-
 router.get('/findUser', (req, res) => {
   const searchTerm = req.query.searchTerm;
 
@@ -112,7 +141,6 @@ router.get('/findUser', (req, res) => {
     return res.status(400).json({ error: 'Invalid search term' });
   }
 });
-
 
 router.post('/friend-requests/create', (req, res) => {
   const requestData = req.body;
