@@ -10,14 +10,27 @@ function RegistrationForm() {
     const navigate = useNavigate();
     const [validated, setValidated] = useState<boolean>(false);
 
+    const validatePassword = (password: string): boolean => {
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_=+{};:,<.>]).{6,30}$/;
+        return passwordRegex.test(password);
+    };
+
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const form = event.currentTarget;
+
         if (form.checkValidity() === false) {
             event.stopPropagation();
             setValidated(true);
             return;
         }
+
+        if (!validatePassword(formData.password)) {
+            event.stopPropagation();
+            alert('Password must include at least 1 capital letter, 1 lowercase letter, 1 number, 1 special character, and be between 6-30 characters.');
+            return;
+        }
+
         setValidated(true);
         await createAccount();
     };
@@ -61,7 +74,7 @@ function RegistrationForm() {
                 const formDataToSend = new FormData();
                 formDataToSend.append('profilePicture', formData.profilePicture);
                 formDataToSend.append('username', formData.username);
-                
+
                 // Upload the profile picture to the backend
                 const uploadResponse = await axios.post('users/upload-profile-picture', formDataToSend, {
                     headers: {
@@ -79,12 +92,12 @@ function RegistrationForm() {
 
             // Proceed to create account with or without profile picture URL
             const response = await axios.post('/users/createAccount', requestBody);
-            if(response.status === 200){
+            if (response.status === 200) {
                 navigate('/'); // navigate to login on successful account creation
-            }else {
+            } else {
                 alert('Error creating account. Please try again.');
             }
-            
+
         } catch (err) {
             console.log(err);
         }
@@ -144,6 +157,9 @@ function RegistrationForm() {
                 <Form.Group as={Col} md="6" controlId="validationCustom04">
                     <Form.Label>Password</Form.Label>
                     <Form.Control type="password" placeholder="Password" name="password" onChange={handleChange} required />
+                    <Form.Text muted>
+                        Password must include at least 1 capital letter, 1 lowercase letter, 1 number, 1 special character, and be between 6-30 characters.
+                    </Form.Text>
                     <Form.Control.Feedback type="invalid">
                         Please enter a password.
                     </Form.Control.Feedback>

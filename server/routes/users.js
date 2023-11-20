@@ -3,12 +3,13 @@ var router = express.Router();
 const connection = require('../db');
 const multer = require('multer');
 const upload = multer();
-const fs = require('fs');
+const bcrypt = require('bcryptjs');
 const AWS = require('aws-sdk');
 
+
 const s3 = new AWS.S3({
-  accessKeyId: 'ACCESS_KEY',
-  secretAccessKey: 'SECRET_KEY',
+  accessKeyId: 'AKIAUADVGEK72CSUK56F',
+  secretAccessKey: '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',
   region: 'us-west-1'
 });
 
@@ -74,67 +75,84 @@ router.get('/id', (req, res) => {
 });
 
 
-//Logs user into system
-router.post('/login', (req, res) => {
-  const username = req.body.username;
-  const password = req.body.password;
-
-  // Use a parameterized query to avoid SQL injection
-  const query = 'SELECT * FROM users WHERE Username = ? AND Password = ?';
-  connection.query(query, [username, password], (err, results) => {
-    if (err) {
-      console.error('Error executing the query: ' + err);
-      res.status(500).send('Error retrieving data');
-    } else {
-      if (results.length === 1) {
-        // User is authenticated
-        // Set the cookie with serialized JSON data
-        res.cookie('login', JSON.stringify({ username: results[0].Username, id: results[0].ID, date: new Date() }), { secure: true, httpOnly: true });
-        res.json({ message: 'Login successful', username: results[0].Username, id: results[0].ID, date: new Date() });
-      } else {
-        // User not found or invalid credentials
-        res.clearCookie('login');
-        res.status(401).json({ message: `Incorrect password, please try again.` });
+  //Logs user into system
+  router.post('/login', async (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
+  
+    // Fetch hashed password from the database based on the username
+    const query = 'SELECT ID, Password FROM users WHERE Username = ?';
+    connection.query(query, [username], async (err, results) => {
+      if (err) {
+        console.error('Error executing the query: ' + err);
+        return res.status(500).send('Error retrieving data');
       }
+  
+      if (results.length === 1) {
+        const hashedPasswordFromDB = results[0].Password;
+  
+        // Compare the hashed password from the database with the user-provided password
+        const passwordMatch = await bcrypt.compare(password, hashedPasswordFromDB);
+  
+        if (passwordMatch) {
+          // Passwords match, user is authenticated
+          res.cookie('login', JSON.stringify({ username: username, id: results[0].ID, date: new Date() }), { secure: true, httpOnly: true });
+          return res.json({ message: 'Login successful', username: username, id: results[0].ID, date: new Date() });
+        } else {
+          // Passwords don't match, invalid credentials
+          res.clearCookie('login');
+          return res.status(401).json({ message: `Incorrect password, please try again.` });
+        }
+      } else {
+        // User not found 
+        res.clearCookie('login');
+        return res.status(401).json({ message: `User not found.` });
+      }
+    });
+  });
+  
+
+  router.post('/createAccount', async (req, res) => {
+    const accountData = req.body;
+
+    try {
+      if (
+        accountData.name &&
+        accountData.username &&
+        accountData.email &&
+        accountData.password
+      ) {
+        // Assign a default image if not provided
+        if (!accountData.profilePicture) {
+          // Set the profile picture to the default image link
+          accountData.profilePicture = 'https://songsnap-profile-pictures.s3.us-west-1.amazonaws.com/profile_default.png';
+        }
+
+        // Hash the password
+        accountData.password = await bcrypt.hash(accountData.password, 10)
+          .catch((err) => {
+            throw new Error("Error hashing password");
+          });
+
+        const query = "INSERT INTO users (name, Username, Email, Password, ProfilePicture) VALUES (?, ?, ?, ?, ?)";
+        const values = [accountData.name, accountData.username, accountData.email, accountData.password, accountData.profilePicture];
+
+        // Perform the database insertion
+        connection.query(query, values, (err) => {
+          if (err) {
+            console.log("Error executing the query:" + err);
+            return res.status(500).send("Error creating the user");
+          }
+          res.status(200).json(accountData);
+        });
+      } else {
+        res.status(400).json({ error: 'Invalid data format' });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      res.status(500).send("Error creating the user");
     }
   });
-});
-
-router.post('/createAccount', async (req, res) => {
-  const accountData = req.body;
-
-  try {
-    if (
-      accountData.name &&
-      accountData.username &&
-      accountData.email &&
-      accountData.password
-    ) {
-      // Assign a default image if not provided
-      if (!accountData.profilePicture) {
-        // Set the profile picture to the default image link
-        accountData.profilePicture = 'https://songsnap-profile-pictures.s3.us-west-1.amazonaws.com/profile_default.png';
-      }
-
-      const query = "INSERT INTO users (name, Username, Email, Password, ProfilePicture) VALUES (?, ?, ?, ?, ?)";
-      const values = [accountData.name, accountData.username, accountData.email, accountData.password, accountData.profilePicture];
-
-      // Perform the database insertion
-      connection.query(query, values, (err) => {
-        if (err) {
-          console.log("Error executing the query:" + err);
-          return res.status(500).send("Error creating the user");
-        }
-        res.status(200).json(accountData);
-      });
-    } else {
-      res.status(400).json({ error: 'Invalid data format' });
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).send("Error creating the user");
-  }
-});
 
 
 
