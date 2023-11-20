@@ -35,77 +35,61 @@ router.get('/id', (req, res) => {
 });
 
 // Edit user details
-router.post('/edit', (req, res) => {
+router.post('/edit', async (req, res) => {
   const requestData = req.body;
+
 
   if (requestData.id) {
     const findUser = `SELECT * FROM users WHERE ID = ?`;
-    connection.query(findUser, [requestData.id], (err, results) => {
+    connection.query(findUser, [requestData.id], async (err, results) => {
       if (err) {
         console.log("Error executing the query: " + err);
         return res.status(500).json({ error: "Error fetching users" });
-      }
+      }else if (results.length > 0) {
+        // Build query
+        let dynamicQuery = "UPDATE users SET ";
+        let setClauses = [];
+        let queryParams = [];
 
-      if (results.length > 0) {
-        let responseCollector = "";
-        let status = 200;
-
-        // Edit each field individually if it is not null and valid
         if (requestData.username && requestData.username.length > 5) {
-          const usernameChange = "UPDATE users SET Username = ? WHERE ID = ?";
-          connection.query(usernameChange, [requestData.username, requestData.id], (err) => {
-            if (err) {
-              console.log("Error executing the query: " + err);
-              status = 500;
-              responseCollector += "Username error: " + err + " | ";
-            } else {
-              responseCollector += "Username Updated | ";
-            }
-          });
+          setClauses.push("Username = ?");
+          queryParams.push(requestData.username);
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (requestData.email && requestData.email.length > 6 && emailRegex.test(requestData.email)) {
-          const emailChange = "UPDATE users SET Email = ? WHERE ID = ?";
-          connection.query(emailChange, [requestData.email, requestData.id], (err) => {
-            if (err) {
-              console.log("Error executing the query: " + err);
-              status = 500;
-              responseCollector += "Email error: " + err + " | ";
-            } else {
-              responseCollector += "Email Updated | ";
-            }
-          });
+          setClauses.push("Email = ?");
+          queryParams.push(requestData.email);
         }
 
         if (requestData.name && requestData.name.length > 5) {
-          const nameChange = "UPDATE users SET Name = ? WHERE ID = ?";
-          connection.query(nameChange, [requestData.name, requestData.id], (err) => {
-            if (err) {
-              console.log("Error executing the query: " + err);
-              status = 500;
-              responseCollector += "Name error: " + err + " | ";
-            } else {
-              responseCollector += "Name Updated | ";
-            }
-          });
+          setClauses.push("name = ?");
+          queryParams.push(requestData.name);
         }
 
         if (requestData.password && requestData.password.length > 3) {
-          // TODO: Does not account for password hashing
-          const passChange = "UPDATE users SET Password = ? WHERE ID = ?";
-          connection.query(passChange, [requestData.password, requestData.id], (err) => {
-            if (err) {
-              console.log("Error executing the query: " + err);
-              status = 500;
-              responseCollector += "Password error: " + err + " | ";
-            } else {
-              responseCollector += "Password Updated | ";
-            }
-          });
+          setClauses.push("Password = ?");
+          queryParams.push(requestData.password);
         }
 
-        return res.status(status).json({ "message": responseCollector });
+        dynamicQuery += setClauses.join(", ");
+        dynamicQuery += " WHERE ID = ?";
+        queryParams.push(requestData.id);
+
+        if(setClauses.length > 0){
+          connection.query(dynamicQuery, queryParams, (err) => {
+            if (err) {
+              console.log("Error executing the query: " + err);
+              return res.status(500).json({ error: 'Invalid query' });
+            } else {
+              return res.status(500).json({ "message": "user details updated" });
+            }
+          });
+
+        }else{
+          return res.status(400).json({ error: 'Invalid query' });
+        }
+
       } else {
         return res.status(404).json({ message: 'No users found matching the given id' });
       }
