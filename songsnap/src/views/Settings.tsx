@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import NavBar from "../components/NavBar";
 import Cookies from 'js-cookie';
-import { get } from 'http';
 import {Container} from "react-bootstrap";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import axios from 'axios';
-import {PersonCheckFill, PersonFillDash, PlusCircle} from 'react-bootstrap-icons';
-import Modal from "react-bootstrap/Modal";
-import Button from "react-bootstrap/Button";
+import {PersonCheckFill, PersonFillDash} from 'react-bootstrap-icons';
 
 interface Friend {
     User1ID: number;
@@ -39,8 +36,6 @@ function Settings() {
     const [userData, setUserData] = useState<User | null>(null);
     const [friendRequests, setFriendRequests] = useState<Friend[]>([]);
     const [userFriends, setUserFriends] = useState<Friend[]>([]);
-    const [modal, setModal] = useState(false);
-    const [show, setShow] = useState<boolean>(false);
     const [formData, setFormData] = useState<UserForm>({
         id: -1,
         name: '',
@@ -48,30 +43,11 @@ function Settings() {
         username: '',
         password: ''
     });
+    const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
-    const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
-
-    const handleSubmission = () => {
-        handleClose(); // Close the modal
-        // axios.post('users/friend-requests/addByUsername', requestData)
-        //     .then(response => {
-        //         console.log("Response submitted");
-        //         // You might want to update the state or do something else upon success
-        //     })
-        //     .catch(error => {
-        //         console.error("Error responding to friend request:", error);
-        //         // Handle errors accordingly
-        //     })
-        //     .finally(() => {
-        //         fetchUserData();
-        //     });
-    };
     const getCookie = (name: string) => {
         return Cookies.get(name);
     }
-
-    const toggle = () => setModal(!modal);
 
     // Rendering
     const renderFriendRequests = () => {
@@ -106,17 +82,15 @@ function Settings() {
     // API Interaction
     const editUserDetails = () => {
         if (userData) {
-
-            axios.post('users/edit', formData)
-                .then(response => {
-                    console.log("Response submitted");
-                })
-                .catch(error => {
-                    console.error("Error responding to friend request:", error);
-                    // Handle errors accordingly
-                })
-                .finally(() => {
+            axios
+                .post('users/edit', formData)
+                .then((response) => {
                     fetchUserData();
+                    setStatusMessage(response.data.changes.join(', ') + ' has been updated');
+                })
+                .catch((error) => {
+                    console.error('Error responding to friend request:', error);
+                    setStatusMessage('OOOOPS! Something went wrong :(');
                 });
         } else {
             console.error('userData is null');
@@ -134,7 +108,7 @@ function Settings() {
 
             axios.post('users/friend-requests/respond', requestData)
                 .then(response => {
-                    console.log("Response submitted");
+                    console.log("Response submitted: " + response);
                     // You might want to update the state or do something else upon success
                 })
                 .catch(error => {
@@ -234,9 +208,14 @@ function Settings() {
                     <div className='tab-pane fade show active' id='home-tab-pane' role='tabpanel' aria-labelledby='home-tab' tabIndex={0}>
                         <div className='row mt-4'>
                             <div className='col-12 col-lg-4 mb-4'>
-                                <img className='img-fluid square-img w-100' src='https://costionline.com/icons/profile-photos/4.webp' />
+                                <img className='img-fluid square-img w-100' src='https://costionline.com/icons/profile-photos/4.webp'  alt="profile image"/>
                             </div>
                             <div className='col-12 col-lg-8'>
+                                {statusMessage && (
+                                    <div className={`alert ${statusMessage.includes('Error') ? 'alert-danger' : 'alert-success'} mt-3 alert-dismissible`} role='alert'>
+                                        {statusMessage}
+                                    </div>
+                                )}
                                 <div className="mb-3">
                                     <label htmlFor="formFile" className="form-label">Upload profile photo</label>
                                     <input className="form-control" type="file" id="formFile" />
@@ -297,23 +276,6 @@ function Settings() {
                     <div className='tab-pane fade' id='disabled-tab-pane' role='tabpanel' aria-labelledby='disabled-tab' tabIndex={0}>4</div>
                 </div>
             </div>
-
-            <Modal show={show} onHide={handleClose}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Send Friend Request</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleClose}>
-                        Close
-                    </Button>
-                    <Button type='submit' variant="primary" onClick={handleSubmission}>
-                        Send Request
-                    </Button>
-                </Modal.Footer>
-            </Modal>
         </>
     );
 }
