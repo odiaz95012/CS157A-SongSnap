@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const connection = require('../db');
+const cron = require('node-cron');
 
 router.post('/create/songSnap', (req, res) => {
   const songSnapData = req.body;
@@ -29,7 +30,7 @@ router.post('/create/songSnap', (req, res) => {
           return res.status(500).send("Error posting the songsnap to the posts table.");
         }
 
-        const alreadyPostedQuery = `SELECT * FROM posts WHERE UserID = ${userID} AND DATE(date) = CURDATE()`;
+        const alreadyPostedQuery = `SELECT * FROM songsnaps WHERE UserID = ${userID} AND DATE(date) = CURDATE()`;
 
         connection.query(alreadyPostedQuery, (err, postedResults) => {
           if (err) {
@@ -50,7 +51,7 @@ router.post('/create/songSnap', (req, res) => {
               return res.status(500).send("Error checking active streak information.");
             }
 
-            if (activeResults.length = 1) {
+            if (activeResults.length == 1) {
               // User has an existing active streak, update the streak
               const currentStreak = activeResults[0];
               const updateStreakQuery = `UPDATE streaks SET Length = Length + 1 WHERE UserID = ? AND StreakID = ?`;
