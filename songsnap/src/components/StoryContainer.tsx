@@ -281,20 +281,26 @@ const StoriesContainer: React.FC<StoriesContainerProps> = ({ userDetails }: Stor
         <h3>Stories</h3>
       </div>
       <div className="scrolling-container d-flex justify-content-center">
-        {activeStories.map((story) => (
-          <div
-            className="scrolling-content"
-            key={story.PostID}
-            onClick={() => handleImageClick(story)}
-          >
-            <Image
-              className={`avatar ${story.Visibility === 'public' ? 'public-avatar' : 'private-avatar'}`}
-              src={story.profilePicture}
-              alt={`Logo ${story.PostID}`}
-              roundedCircle
-            />
+        {activeStories.length === 0 ? (
+          <div className="no-stories-message">No stories :(</div>
+        ) : (
+          <div className="scrolling-container d-flex justify-content-center">
+            {activeStories.map((story) => (
+              <div
+                className="scrolling-content"
+                key={story.PostID}
+                onClick={() => handleImageClick(story)}
+              >
+                <Image
+                  className={`avatar ${story.Visibility === 'public' ? 'public-avatar' : 'private-avatar'}`}
+                  src={story.profilePicture}
+                  alt={`Logo ${story.PostID}`}
+                  roundedCircle
+                />
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
       {selectedStory && (
         <StoryModal

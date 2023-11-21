@@ -490,6 +490,24 @@ router.post('/blocked-users/create', (req, res) => {
   }
 });
 
+//Streaks
+
+router.get('/streaks', (req,res) => {
+  const id = req.query.id;
+
+  const query = `SELECT * FROM streaks WHERE UserID = ${id}`;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.log("Error executing the query:" + err);
+      res.status(500).send("Error checking streak information.");
+    } else {
+      res.status(200).json(results);
+    }
+  });
+  
+});
+
 
 
 module.exports = router;
