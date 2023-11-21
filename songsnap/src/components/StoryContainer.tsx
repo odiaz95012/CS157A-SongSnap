@@ -84,7 +84,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
               {iframeLoaded && player ? (
                 <>
                   <Row>
-                    <Col xs={12} md={12} style={{ width: '175px', height: '0px', marginLeft: '25px' }}>
+                    <Col xs={12} md={12} style={{ width: '175px', height: '5px', marginLeft: '-110px' }}>
                       {player}
                     </Col>
                   </Row>
