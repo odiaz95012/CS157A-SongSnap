@@ -509,6 +509,23 @@ router.get('/streaks', (req, res) => {
 
 });
 
+router.get('/activeStreak', (req, res) => {
+  const id = req.query.id;
+
+  const query = `SELECT * FROM streaks WHERE UserID = ${id} AND EndDate IS NULL`;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.log("Error executing the query:" + err);
+      res.status(500).send("Error checking streak information.");
+    } else {
+      res.status(200).json(results);
+      
+    }
+  });
+
+});
+
 
 
 const checkDailyStreaks = (callback) => {
@@ -526,7 +543,7 @@ const checkDailyStreaks = (callback) => {
 
     for (const streak of activeStreaks) {
       const userID = streak.UserID;
-      connection.query('SELECT * FROM posts WHERE UserID = ? AND DATE(date) = ?', [userID, yesterdayDate], (err, result) => {
+      connection.query('SELECT * FROM songsnaps WHERE UserID = ? AND DATE(date) = ?', [userID, yesterdayDate], (err, result) => {
         if (err) {
           console.error("Error executing the query:", err);
           callback(err);

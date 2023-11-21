@@ -72,6 +72,7 @@ function NavBar() {
                 userID: userID,
                 promptID: 1
             })
+            window.location.reload();
         } else {
             console.log('No userID found in the cookie');
         }
