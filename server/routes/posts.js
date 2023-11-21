@@ -50,7 +50,7 @@ router.post('/create/songSnap', (req, res) => {
               return res.status(500).send("Error checking active streak information.");
             }
 
-            if (activeResults.length > 0) {
+            if (activeResults.length = 1) {
               // User has an existing active streak, update the streak
               const currentStreak = activeResults[0];
               const updateStreakQuery = `UPDATE streaks SET Length = Length + 1 WHERE UserID = ? AND StreakID = ?`;
