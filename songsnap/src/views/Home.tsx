@@ -6,6 +6,7 @@ import SongSnapPlayer from '../components/SongSnapPlayer';
 import PopUpModal from '../components/PopUpModal';
 import SongSnapForm from '../components/SongSnapForm';
 import Cookies from 'js-cookie';
+import DailyPrompt from '../components/DailyPrompt';
 import StoriesContainer from '../components/StoryContainer';
 
 
@@ -192,45 +193,16 @@ function Home() {
         Theme: string;
     }
 
-    const createDailyPromptCookie = (name: string, value: object) => {
-        const now = new Date();
-        const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0); // Set to next day midnight
-
-        Cookies.set(name, JSON.stringify(value), { expires: midnight, path: '/' });
-    };
-
-    const getStoredDailyPrompt = () => {
-        const storedPrompt = Cookies.get('dailyPrompt');
-        return storedPrompt ? JSON.parse(storedPrompt) : { ID: 0, PromptText: '', Theme: '' };
-    };
-
-
-    const [dailyPrompt, setDailyPrompt] = useState<Prompt>(getStoredDailyPrompt());
-
-    const getDailyPrompt = () => {
-        // If we already got the prompt of the day, don't get it again
-        if (dailyPrompt.ID !== 0) return;
-        axios.get('/prompts/prompt-of-the-day')
-            .then((response) => {
-                console.log(response.data);
-                const prompt = response.data;
-                setDailyPrompt(prompt);
-                createDailyPromptCookie('dailyPrompt', prompt);
-            }).catch((error) => {
-                console.log(error);
-            });
-    };
 
 
 
 
     useEffect(() => {
-        const getUserDetailsAndDailyPrompt = async () => {
+        const getUserDetails = async () => {
             try {
                 const userID = await getCookie('userID');
                 const response = await axios.get('/users/id?id=' + userID);
                 setCurrUserDetails(response.data);
-                getDailyPrompt();
 
             } catch (error) {
                 console.error(error);
@@ -250,7 +222,7 @@ function Home() {
             }
         };
 
-        getUserDetailsAndDailyPrompt();
+        getUserDetails();
         populateFeeds();
     }, []);
 
@@ -267,7 +239,7 @@ function Home() {
                 ProfilePicture: songSnap.ProfilePicture,
                 ID: songSnap.UserID
             };
-    
+
             return (
                 <div className='player-container' key={songSnap.PostID}>
                     <SongSnapPlayer
@@ -284,7 +256,7 @@ function Home() {
             );
         });
     };
-    
+
 
 
 
@@ -299,13 +271,12 @@ function Home() {
                     <div className="row gx-5 justify-content-center">
                         <div className="col-lg-6">
                             <div className="text-center my-5">
-                                {dailyPrompt && (
-                                    <>
-                                        <h1 className="display-5 fw-bolder text-white mb-2">Prompt of the Day</h1>
-                                        <p className="lead text-white mb-4">{dailyPrompt.PromptText}</p>
-                                        <p className='text-white-50'>Theme: {dailyPrompt.Theme}</p>
-                                    </>
-                                )}
+
+                                <h1 className="display-5 fw-bolder text-white mb-2">Prompt of the Day</h1>
+                                <DailyPrompt />
+                                {/* <p className="lead text-white mb-4">{dailyPrompt.PromptText}</p>
+                                        <p className='text-white-50'>Theme: {dailyPrompt.Theme}</p> */}
+
                                 <div className="d-grid gap-4 d-sm-flex justify-content-sm-center">
                                     <PopUpModal
                                         title='Create a SongSnap'
@@ -321,7 +292,7 @@ function Home() {
                 </div>
             </header>
             {/* Stories Container */}
-            <StoriesContainer userDetails={currUserDetails}/>
+            <StoriesContainer userDetails={currUserDetails} />
 
             {/* Feed Container */}
             <div className="d-flex-1 text-center justify-content-center align-items-center mt-3">

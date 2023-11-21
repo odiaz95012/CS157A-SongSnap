@@ -169,8 +169,10 @@ function Profile() {
                         trackID={songSnap.SongID}
                         backgroundTheme={songSnap.Theme}
                         caption={songSnap.Caption}
-                        user={profileDetails}
+                        user={profileUser!}
                         postID={songSnap.PostID}
+                        ownerUserID={songSnap.UserID}
+                        currUserProfilePicture={songSnap.ProfilePicture}
                     />
                 </div>
             );
