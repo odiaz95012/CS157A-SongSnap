@@ -28,6 +28,7 @@ interface User {
 }
 
 interface UserForm {
+    id: number;
     name: string;
     username: string;
     email: string;
@@ -41,6 +42,7 @@ function Settings() {
     const [modal, setModal] = useState(false);
     const [show, setShow] = useState<boolean>(false);
     const [formData, setFormData] = useState<UserForm>({
+        id: -1,
         name: '',
         email: '',
         username: '',
@@ -102,6 +104,25 @@ function Settings() {
     };
 
     // API Interaction
+    const editUserDetails = () => {
+        if (userData) {
+
+            axios.post('users/edit', formData)
+                .then(response => {
+                    console.log("Response submitted");
+                })
+                .catch(error => {
+                    console.error("Error responding to friend request:", error);
+                    // Handle errors accordingly
+                })
+                .finally(() => {
+                    fetchUserData();
+                });
+        } else {
+            console.error('userData is null');
+        }
+    };
+
     const respondFriendRequest = (ID: number, accept: string) => {
         if (userData) {
 
@@ -156,7 +177,8 @@ function Settings() {
 
     const fetchUserData = async () => {
         // get user id from cookie
-        const userID = await getCookie('userID');
+        const userID = await getCookie('userID')!;
+        setFormData({...formData, id: parseInt(userID)})
         // Fetch user data
         axios.get('/users/id?id=' + userID)
             .then(response => {
@@ -228,7 +250,7 @@ function Settings() {
 
                                     <div className="form-group">
                                         <label htmlFor="username">Username:</label>
-                                        <input type="text" className="form-control" id="username" name="username" placeholder={userData?.Username} />
+                                        <input type="text" className="form-control" id="username" name="username" onChange={e => setFormData(...formData, usern)} placeholder={userData?.Username} />
                                     </div>
 
                                     <div className="form-group">
