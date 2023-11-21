@@ -8,25 +8,15 @@ import SongSnapForm from '../components/SongSnapForm';
 import Cookies from 'js-cookie';
 import StoriesContainer from '../components/StoryContainer';
 
-//TODO: FIGURE OUT HOW TO GET EACH USER's USERNAME IN ITS CORRESPONDING SONGSNAP CAPTION
 
 function Home() {
     const [activeView, setActiveView] = useState<string>('main-feed');
-    const [songName, setSongName] = useState<string>('');
-    const [songID, setSongID] = useState<number | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [songSnapPlayer, setSongSnapPlayer] = useState<JSX.Element | null>(null);
-    const [isPlayerVisible, setPlayerVisible] = useState<boolean>(false);
-    const [isFeedsGenerated, setIsFeedsGenerated] = useState<boolean>(false);
+
 
     const handleActiveFeedChange = (view: string) => {
         setActiveView(view);
     };
 
-    const handleSongName = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let song = e.target.value;
-        setSongName(song.replaceAll(' ', '%20'));
-    };
 
     const options: AxiosRequestConfig = {
         method: 'GET',
@@ -46,7 +36,6 @@ function Home() {
                     q: `${songName} ${artistName}`, // Set the song and artist name as a parameter
                 },
             });
-            setSongID(response.data.data[0].id);
             return response.data.data[0].id;
         } catch (error) {
             console.error(error);
@@ -54,27 +43,25 @@ function Home() {
     };
 
 
-    const generatePlayer = async (backgroundTheme: string, caption: string, songID: number, userDetails:User, postID:number): Promise<JSX.Element | void> => {
-        // Set isLoading to true when generating the player
-        setIsLoading(true);
-
+    const generatePlayer = async (backgroundTheme: string, caption: string, songID: number, userDetails: User, postID: number): Promise<JSX.Element | void> => {
         try {
             if (songID) {
-                const player = <SongSnapPlayer 
-                                    dztype="dzplayer" 
-                                    trackID={songID} 
-                                    backgroundTheme={backgroundTheme} 
-                                    caption={caption} 
-                                    user={userDetails}
-                                    postID={postID}
-                                    />;
-                setSongSnapPlayer(player);
+                const player = <SongSnapPlayer
+                    dztype="dzplayer"
+                    trackID={songID}
+                    backgroundTheme={backgroundTheme}
+                    caption={caption}
+                    user={userDetails}
+                    postID={postID}
+                    ownerUserID={userDetails.ID}
+                    currUserProfilePicture={userDetails.ProfilePicture}
+                />;
+
 
             }
         } catch (error) {
             console.error(error);
         }
-        setIsLoading(false);
     };
 
 
@@ -109,10 +96,8 @@ function Home() {
         }
     };
 
-    const generateSongSnap = (backgroundTheme: string, caption: string, songID: number, userDetails:User, postID: number) => {
-
+    const generateSongSnap = (backgroundTheme: string, caption: string, songID: number, userDetails: User, postID: number) => {
         generatePlayer(backgroundTheme, caption, songID, userDetails, postID);
-        setPlayerVisible(true);
     };
 
     interface SongSnapInputData {
@@ -133,7 +118,6 @@ function Home() {
     });
 
     const handleSongSnapUpload = (formData: SongSnapInputData) => {
-        // Do something with the form data, e.g., send it to an API or update the state
         setSongSnapData(formData);
     };
 
@@ -157,7 +141,7 @@ function Home() {
     const [mainFeedSongSnaps, setMainFeedSongSnaps] = useState<SongSnap[]>([]);
     const [friendsFeedSongSnaps, setFriendsFeedSongSnaps] = useState<SongSnap[]>([]);
     const [isFeedsLoaded, setIsFeedsLoaded] = useState<boolean>(false);
-    const [currUserDetails, setCurrUserDetails] = useState<User>({ Username: '', name: '', ProfilePicture: '' });
+    const [currUserDetails, setCurrUserDetails] = useState<User>({ Username: '', name: '', ProfilePicture: '', ID: 0 });
 
     const getMainFeedSongSnaps = async () => {
         try {
@@ -195,42 +179,83 @@ function Home() {
         }
     };
 
-    interface User{
+    interface User {
         Username: string;
-        name: string; 
-        ProfilePicture: string
+        name: string;
+        ProfilePicture: string;
+        ID: number;
     }
 
-    
+    interface Prompt {
+        ID: number;
+        PromptText: string;
+        Theme: string;
+    }
+
+    const createDailyPromptCookie = (name: string, value: object) => {
+        const now = new Date();
+        const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0); // Set to next day midnight
+
+        Cookies.set(name, JSON.stringify(value), { expires: midnight, path: '/' });
+    };
+
+    const getStoredDailyPrompt = () => {
+        const storedPrompt = Cookies.get('dailyPrompt');
+        return storedPrompt ? JSON.parse(storedPrompt) : { ID: 0, PromptText: '', Theme: '' };
+    };
+
+
+    const [dailyPrompt, setDailyPrompt] = useState<Prompt>(getStoredDailyPrompt());
+
+    const getDailyPrompt = () => {
+        // If we already got the prompt of the day, don't get it again
+        if (dailyPrompt.ID !== 0) return;
+        axios.get('/prompts/prompt-of-the-day')
+            .then((response) => {
+                console.log(response.data);
+                const prompt = response.data;
+                setDailyPrompt(prompt);
+                createDailyPromptCookie('dailyPrompt', prompt);
+            }).catch((error) => {
+                console.log(error);
+            });
+    };
+
+
+
 
     useEffect(() => {
-        const getUserDetails = async () => {
+        const getUserDetailsAndDailyPrompt = async () => {
             try {
                 const userID = await getCookie('userID');
                 const response = await axios.get('/users/id?id=' + userID);
                 setCurrUserDetails(response.data);
-                
+                getDailyPrompt();
+
             } catch (error) {
                 console.error(error);
             }
-        }; 
+        };
         const populateFeeds = async () => {
             try {
                 const mainFeedSongSnaps = await getMainFeedSongSnaps();
                 setMainFeedSongSnaps(mainFeedSongSnaps);
                 const friendsFeedSongSnaps = await getFriendsFeedSongSnaps();
                 if (friendsFeedSongSnaps) {
-                    setFriendsFeedSongSnaps(friendsFeedSongSnaps);                }
+                    setFriendsFeedSongSnaps(friendsFeedSongSnaps);
+                }
                 setIsFeedsLoaded(true);
             } catch (error) {
                 console.error(error);
             }
         };
-        getUserDetails();
+
+        getUserDetailsAndDailyPrompt();
         populateFeeds();
     }, []);
 
-    
+
+
 
 
 
@@ -239,25 +264,27 @@ function Home() {
             const profileDetails: User = {
                 Username: songSnap.Username,
                 name: songSnap.name,
-                ProfilePicture: songSnap.ProfilePicture
+                ProfilePicture: songSnap.ProfilePicture,
+                ID: songSnap.UserID
             };
     
             return (
                 <div className='player-container' key={songSnap.PostID}>
-                    <SongSnapPlayer 
-                        dztype="dzplayer" 
-                        trackID={songSnap.SongID} 
-                        backgroundTheme={songSnap.Theme} 
-                        caption={songSnap.Caption} 
+                    <SongSnapPlayer
+                        dztype="dzplayer"
+                        trackID={songSnap.SongID}
+                        backgroundTheme={songSnap.Theme}
+                        caption={songSnap.Caption}
                         user={profileDetails}
                         postID={songSnap.PostID}
-                         />
+                        ownerUserID={songSnap.UserID}
+                        currUserProfilePicture={currUserDetails.ProfilePicture}
+                    />
                 </div>
             );
         });
     };
     
-
 
 
 
@@ -272,8 +299,13 @@ function Home() {
                     <div className="row gx-5 justify-content-center">
                         <div className="col-lg-6">
                             <div className="text-center my-5">
-                                <h1 className="display-5 fw-bolder text-white mb-2">Prompt of the Day</h1>
-                                <p className="lead text-white-50 mb-4">INSERT PROMPT HERE</p>
+                                {dailyPrompt && (
+                                    <>
+                                        <h1 className="display-5 fw-bolder text-white mb-2">Prompt of the Day</h1>
+                                        <p className="lead text-white mb-4">{dailyPrompt.PromptText}</p>
+                                        <p className='text-white-50'>Theme: {dailyPrompt.Theme}</p>
+                                    </>
+                                )}
                                 <div className="d-grid gap-4 d-sm-flex justify-content-sm-center">
                                     <PopUpModal
                                         title='Create a SongSnap'
@@ -289,7 +321,7 @@ function Home() {
                 </div>
             </header>
             {/* Stories Container */}
-            <StoriesContainer />
+            <StoriesContainer userDetails={currUserDetails}/>
 
             {/* Feed Container */}
             <div className="d-flex-1 text-center justify-content-center align-items-center mt-3">
@@ -314,12 +346,13 @@ function Home() {
                 </div>
             </div>
 
+
+
             <div className="container overflow-auto text-center d-flex justify-content-center align-items-center h-100 feed-container my-3">
                 {/* Main Feed View */}
                 <div id="main-feed" className={`view ${activeView === 'main-feed' ? 'active-view' : ''}`}>
                     <div className="container text-center">
                         <h1>Main Feed</h1>
-                        {/* Add main feed content here */}
                         <div className='row'>
                             <div className='container'>
                                 <div className='col-md-12 my-5'>
@@ -338,7 +371,6 @@ function Home() {
                 <div id="friends-feed" className={`view ${activeView === 'friends-feed' ? 'active-view' : ''}`}>
                     <div className="container text-center">
                         <h1>Friends Feed</h1>
-                        {/* Add friends feed content here */}
                         <div className='row'>
                             <div className='container'>
                                 <div className='col-md-12 my-5'>

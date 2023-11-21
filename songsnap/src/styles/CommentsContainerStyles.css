@@ -1,14 +1,14 @@
 .comment {
-    width: 85%;
+    width: 350px;
+    max-width: 350px;
     min-height: 50px;
     border-radius: 25px;
     padding: 15px 15px;
     margin-top: 5px;
-    margin-left: 25px;
+    margin-left: 15px;
     background-color: rgba(211, 211, 211, 0.2);
-
-    text-wrap: normal;
-}
+    overflow: auto;
+}   
 .icon {
     width: 35px;
     height: 30px;
