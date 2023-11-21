@@ -5,6 +5,7 @@ const multer = require('multer');
 const upload = multer();
 const bcrypt = require('bcryptjs');
 const AWS = require('aws-sdk');
+const cron = require('node-cron');
 
 
 const s3 = new AWS.S3({
@@ -87,7 +88,7 @@ router.post('/edit', async (req, res) => {
       if (err) {
         console.log("Error executing the query: " + err);
         return res.status(500).json({ error: "Error fetching users" });
-      }else if (results.length > 0) {
+      } else if (results.length > 0) {
         // Build query
         let dynamicQuery = "UPDATE users SET ";
         let setClauses = [];
@@ -124,7 +125,7 @@ router.post('/edit', async (req, res) => {
         dynamicQuery += " WHERE ID = ?";
         queryParams.push(requestData.id);
 
-        if(setClauses.length > 0){
+        if (setClauses.length > 0) {
           connection.query(dynamicQuery, queryParams, (err) => {
             if (err) {
               console.log("Error executing the query: " + err);
@@ -134,7 +135,7 @@ router.post('/edit', async (req, res) => {
             }
           });
 
-        }else{
+        } else {
           return res.status(400).json({ error: 'Invalid query' });
         }
 
@@ -147,84 +148,84 @@ router.post('/edit', async (req, res) => {
   }
 });
 
-  //Logs user into system
-  router.post('/login', async (req, res) => {
-    const username = req.body.username;
-    const password = req.body.password;
-  
-    // Fetch hashed password from the database based on the username
-    const query = 'SELECT ID, Password FROM users WHERE Username = ?';
-    connection.query(query, [username], async (err, results) => {
-      if (err) {
-        console.error('Error executing the query: ' + err);
-        return res.status(500).send('Error retrieving data');
-      }
-  
-      if (results.length === 1) {
-        const hashedPasswordFromDB = results[0].Password;
-  
-        // Compare the hashed password from the database with the user-provided password
-        const passwordMatch = await bcrypt.compare(password, hashedPasswordFromDB);
-  
-        if (passwordMatch) {
-          // Passwords match, user is authenticated
-          res.cookie('login', JSON.stringify({ username: username, id: results[0].ID, date: new Date() }), { secure: true, httpOnly: true });
-          return res.json({ message: 'Login successful', username: username, id: results[0].ID, date: new Date() });
-        } else {
-          // Passwords don't match, invalid credentials
-          res.clearCookie('login');
-          return res.status(401).json({ message: `Incorrect password, please try again.` });
-        }
+//Logs user into system
+router.post('/login', async (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
+
+  // Fetch hashed password from the database based on the username
+  const query = 'SELECT ID, Password FROM users WHERE Username = ?';
+  connection.query(query, [username], async (err, results) => {
+    if (err) {
+      console.error('Error executing the query: ' + err);
+      return res.status(500).send('Error retrieving data');
+    }
+
+    if (results.length === 1) {
+      const hashedPasswordFromDB = results[0].Password;
+
+      // Compare the hashed password from the database with the user-provided password
+      const passwordMatch = await bcrypt.compare(password, hashedPasswordFromDB);
+
+      if (passwordMatch) {
+        // Passwords match, user is authenticated
+        res.cookie('login', JSON.stringify({ username: username, id: results[0].ID, date: new Date() }), { secure: true, httpOnly: true });
+        return res.json({ message: 'Login successful', username: username, id: results[0].ID, date: new Date() });
       } else {
-        // User not found 
+        // Passwords don't match, invalid credentials
         res.clearCookie('login');
-        return res.status(401).json({ message: `User not found.` });
+        return res.status(401).json({ message: `Incorrect password, please try again.` });
       }
-    });
-  });
-  
-
-  router.post('/createAccount', async (req, res) => {
-    const accountData = req.body;
-
-    try {
-      if (
-        accountData.name &&
-        accountData.username &&
-        accountData.email &&
-        accountData.password
-      ) {
-        // Assign a default image if not provided
-        if (!accountData.profilePicture) {
-          // Set the profile picture to the default image link
-          accountData.profilePicture = 'https://songsnap-profile-pictures.s3.us-west-1.amazonaws.com/profile_default.png';
-        }
-
-        // Hash the password
-        accountData.password = await bcrypt.hash(accountData.password, 10)
-          .catch((err) => {
-            throw new Error("Error hashing password");
-          });
-
-        const query = "INSERT INTO users (name, Username, Email, Password, ProfilePicture) VALUES (?, ?, ?, ?, ?)";
-        const values = [accountData.name, accountData.username, accountData.email, accountData.password, accountData.profilePicture];
-
-        // Perform the database insertion
-        connection.query(query, values, (err) => {
-          if (err) {
-            console.log("Error executing the query:" + err);
-            return res.status(500).send("Error creating the user");
-          }
-          res.status(200).json(accountData);
-        });
-      } else {
-        res.status(400).json({ error: 'Invalid data format' });
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      res.status(500).send("Error creating the user");
+    } else {
+      // User not found 
+      res.clearCookie('login');
+      return res.status(401).json({ message: `User not found.` });
     }
   });
+});
+
+
+router.post('/createAccount', async (req, res) => {
+  const accountData = req.body;
+
+  try {
+    if (
+      accountData.name &&
+      accountData.username &&
+      accountData.email &&
+      accountData.password
+    ) {
+      // Assign a default image if not provided
+      if (!accountData.profilePicture) {
+        // Set the profile picture to the default image link
+        accountData.profilePicture = 'https://songsnap-profile-pictures.s3.us-west-1.amazonaws.com/profile_default.png';
+      }
+
+      // Hash the password
+      accountData.password = await bcrypt.hash(accountData.password, 10)
+        .catch((err) => {
+          throw new Error("Error hashing password");
+        });
+
+      const query = "INSERT INTO users (name, Username, Email, Password, ProfilePicture) VALUES (?, ?, ?, ?, ?)";
+      const values = [accountData.name, accountData.username, accountData.email, accountData.password, accountData.profilePicture];
+
+      // Perform the database insertion
+      connection.query(query, values, (err) => {
+        if (err) {
+          console.log("Error executing the query:" + err);
+          return res.status(500).send("Error creating the user");
+        }
+        res.status(200).json(accountData);
+      });
+    } else {
+      res.status(400).json({ error: 'Invalid data format' });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send("Error creating the user");
+  }
+});
 
 
 
@@ -267,7 +268,7 @@ router.post('/friend-requests/create', (req, res) => {
         console.log("Error executing the query: " + err);
         return res.status(500).json({ error: "000PS! Something happened :(" });
       } else {
-        if(results.length === 0){
+        if (results.length === 0) {
           console.log("the length is 0. running the query to insert into");
           // There is no incoming request present. Send request as normal
           const query = "INSERT INTO friends (User1ID, User2ID, Status, Date) VALUES (?, ?, 'Pending', ?)";
@@ -281,7 +282,7 @@ router.post('/friend-requests/create', (req, res) => {
               return res.status(200).json({ message: "Friend request created successfully" });
             }
           });
-        }else{
+        } else {
           // An incoming friend request already exists. Create a friendship.
           const accept = "UPDATE friends SET Status = 'Accepted' WHERE User1ID = ? AND User2ID = ? AND Status = 'Pending'";
           connection.query(accept, [requestData.user2id, requestData.user1id], (err) => {
@@ -362,7 +363,7 @@ router.post('/friend-requests/respond', (req, res) => {
         });
       }
     });
-  } else if(requestData.user1id && requestData.user2id && requestData.decision === 'Rejected'){
+  } else if (requestData.user1id && requestData.user2id && requestData.decision === 'Rejected') {
     // Request was rejected; delete existing request
     const query = "DELETE FROM friends WHERE User1ID = ? AND User2ID = ? AND Status = 'Pending'";
     connection.query(query, [requestData.user1id, requestData.user2id, requestData.decision], (err) => {
@@ -492,7 +493,7 @@ router.post('/blocked-users/create', (req, res) => {
 
 //Streaks
 
-router.get('/streaks', (req,res) => {
+router.get('/streaks', (req, res) => {
   const id = req.query.id;
 
   const query = `SELECT * FROM streaks WHERE UserID = ${id}`;
@@ -505,9 +506,66 @@ router.get('/streaks', (req,res) => {
       res.status(200).json(results);
     }
   });
-  
+
 });
 
+
+
+const checkDailyStreaks = (callback) => {
+  connection.query('SELECT * FROM streaks WHERE EndDate IS NULL', (err, result) => {
+    if (err) {
+      console.error("Error executing the query:", err);
+      callback(err);
+      return;
+    }
+    const activeStreaks = result;
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayDate = yesterday.toISOString().split('T')[0];
+
+    for (const streak of activeStreaks) {
+      const userID = streak.UserID;
+      connection.query('SELECT * FROM posts WHERE UserID = ? AND DATE(date) = ?', [userID, yesterdayDate], (err, result) => {
+        if (err) {
+          console.error("Error executing the query:", err);
+          callback(err);
+          return;
+        }
+        const posts = result;
+
+        if (posts.length === 0) {
+          const updateQuery = `UPDATE streaks SET EndDate = ? WHERE UserID = ? AND EndDate IS NULL`;
+          connection.query(updateQuery, [yesterdayDate, userID], (err) => {
+            if (err) {
+              console.error("Error updating streak end date:", err);
+              callback(err);
+              return;
+            } else {
+              console.log(`Streak for UserID ${userID} ended on ${yesterdayDate}`);
+              callback(null);
+            }
+          });
+
+        }
+      });
+    }
+  });
+};
+
+
+// Schedule the task to run at the start of every day (midnight)
+cron.schedule('0 0 * * *', () => {
+  checkDailyStreaks((err) => {
+    if (!err) {
+      console.log('Streaks updated');
+    } else {
+      console.error('Error: ', err);
+    }
+  });
+}, {
+  timezone: 'America/Los_Angeles',
+});
 
 
 module.exports = router;
