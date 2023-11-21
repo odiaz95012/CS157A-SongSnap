@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const connection = require('../db');
+const {request, response} = require("express");
 const multer = require('multer');
 const upload = multer();
 const bcrypt = require('bcryptjs');
@@ -43,6 +44,7 @@ router.post('/upload-profile-picture', upload.single('profilePicture'), (req, re
   });
 });
 
+
 //get all users
 router.get('/', (req, res) => {
   const query = "SELECT * FROM users";
@@ -63,7 +65,9 @@ router.get('/id', (req, res) => {
     return res.status(400).send('No ID provided');
   }
 
-  const query = `SELECT * FROM users WHERE ID = ${id}`;
+
+  const query = `SELECT ID, name, Email, ProfilePicture, Username FROM users WHERE ID = ${id}`;
+
   connection.query(query, (err, results) => {
     if (err) {
       console.error('Error executing the query: ' + err);
@@ -74,6 +78,75 @@ router.get('/id', (req, res) => {
   });
 });
 
+// Edit user details
+router.post('/edit', async (req, res) => {
+  const requestData = req.body;
+
+  if (requestData.id) {
+    const findUser = `SELECT * FROM users WHERE ID = ?`;
+    connection.query(findUser, [requestData.id], async (err, results) => {
+      if (err) {
+        console.log("Error executing the query: " + err);
+        return res.status(500).json({ error: "Error fetching users" });
+      }else if (results.length > 0) {
+        // Build query
+        let dynamicQuery = "UPDATE users SET ";
+        let setClauses = [];
+        let queryParams = [];
+
+        let changes = [];
+
+        if (requestData.username && requestData.username.length > 5) {
+          setClauses.push("Username = ?");
+          queryParams.push(requestData.username);
+          changes.push("username");
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (requestData.email && requestData.email.length > 6 && emailRegex.test(requestData.email)) {
+          setClauses.push("Email = ?");
+          queryParams.push(requestData.email);
+          changes.push("email")
+        }
+
+        if (requestData.name && requestData.name.length > 5) {
+          setClauses.push("name = ?");
+          queryParams.push(requestData.name);
+          changes.push("name");
+        }
+
+        if (requestData.password && requestData.password.length > 3) {
+          setClauses.push("Password = ?");
+          queryParams.push(requestData.password);
+          changes.push("password");
+        }
+
+        dynamicQuery += setClauses.join(", ");
+        dynamicQuery += " WHERE ID = ?";
+        queryParams.push(requestData.id);
+
+        if(setClauses.length > 0){
+          connection.query(dynamicQuery, queryParams, (err) => {
+            if (err) {
+              console.log("Error executing the query: " + err);
+              return res.status(500).json({ error: 'Invalid query' });
+            } else {
+              return res.status(200).json({ "message": "user details updated", "changes": changes });
+            }
+          });
+
+        }else{
+          return res.status(400).json({ error: 'Invalid query' });
+        }
+
+      } else {
+        return res.status(404).json({ message: 'No users found matching the given id' });
+      }
+    });
+  } else {
+    return res.status(400).json({ error: 'ID field is required' });
+  }
+});
 
   //Logs user into system
   router.post('/login', async (req, res) => {
@@ -157,7 +230,6 @@ router.get('/id', (req, res) => {
 
 
 
-
 router.get('/findUser', (req, res) => {
   const searchTerm = req.query.searchTerm;
 
@@ -185,19 +257,52 @@ router.get('/findUser', (req, res) => {
   }
 });
 
-
 router.post('/friend-requests/create', (req, res) => {
   const requestData = req.body;
-  if (requestData.user1 && requestData.user2) {
-    const query = "INSERT INTO friends (User1ID, User2ID, Status, Date) VALUES (?, ?, ?, ?)";
-    const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' '); // Format the date
+  if (requestData.user1id && requestData.user2id) {
+    // Check to see if an incoming request from the user already exists. if so, create the friendship right away.
+    const check = "SELECT * FROM friends WHERE User1ID = ? AND User2ID = ? AND friends.Status = 'Pending'";
 
-    connection.query(query, [requestData.user1, requestData.user2, 'Pending', currentDate], (err, results) => {
+    connection.query(check, [requestData.user2id, requestData.user1id], (err, results) => {
       if (err) {
         console.log("Error executing the query: " + err);
         return res.status(500).json({ error: "000PS! Something happened :(" });
       } else {
-        return res.status(200).json({ message: "Friend request created successfully" });
+        if(results.length === 0){
+          console.log("the length is 0. running the query to insert into");
+          // There is no incoming request present. Send request as normal
+          const query = "INSERT INTO friends (User1ID, User2ID, Status, Date) VALUES (?, ?, 'Pending', ?)";
+          const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' '); // TODO: use SQL version
+
+          connection.query(query, [requestData.user1id, requestData.user2id, currentDate], (err) => {
+            if (err) {
+              console.log("Error executing the query: " + err);
+              return res.status(500).json({ error: "000PS! Something happened :(" });
+            } else {
+              return res.status(200).json({ message: "Friend request created successfully" });
+            }
+          });
+        }else{
+          // An incoming friend request already exists. Create a friendship.
+          const accept = "UPDATE friends SET Status = 'Accepted' WHERE User1ID = ? AND User2ID = ? AND Status = 'Pending'";
+          connection.query(accept, [requestData.user2id, requestData.user1id], (err) => {
+            if (err) {
+              console.log("Error executing the query: " + err);
+              return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
+            } else {
+              // create outgoing friendship relation
+              const createEntry = "INSERT INTO friends (`User1ID`, `User2ID`, `Status`) VALUES (?, ?, 'Accepted')";
+              connection.query(createEntry, [requestData.user1id, requestData.user2id], (err) => {
+                if (err) {
+                  console.log("Error executing the query: " + err);
+                  return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
+                } else {
+                  return res.status(200).json({ message: "User added as friend" });
+                }
+              });
+            }
+          });
+        }
       }
     });
   } else {
@@ -210,7 +315,7 @@ router.get('/friend-requests/all', (req, res) => {
 
   if (id) {
     const query = `
-      SELECT friends.User1ID, friends.Date, users.name, users.username
+      SELECT friends.User1ID, friends.User2ID, friends.Date, users.name, users.username
       FROM friends, users
       WHERE friends.User1ID = users.id 
       AND friends.User2ID = ? 
@@ -236,14 +341,37 @@ router.get('/friend-requests/all', (req, res) => {
 
 router.post('/friend-requests/respond', (req, res) => {
   const requestData = req.body;
-  if (requestData.user1id && requestData.user2id && (requestData.decision === 'Accepted' || requestData.decision === 'Rejected')) {
+
+  // Check if accepted or rejected
+  if (requestData.user1id && requestData.user2id && requestData.decision === 'Accepted') {
+    // Request was accepted; accept incoming
     const query = "UPDATE friends SET Status = ? WHERE User1ID = ? AND User2ID = ? AND Status = 'Pending'";
-    connection.query(query, [requestData.decision, requestData.user1id, requestData.user2id], (err, results) => {
+    connection.query(query, [requestData.decision, requestData.user1id, requestData.user2id], (err) => {
       if (err) {
         console.log("Error executing the query: " + err);
         return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
       } else {
-        return res.status(200).json({ message: "Response submitted" });
+        // create outgoing friendship relation
+        const createEntry = "INSERT INTO friends (`User1ID`, `User2ID`, `Status`) VALUES (?, ?, ?)";
+        connection.query(createEntry, [requestData.user2id, requestData.user1id, requestData.decision], (err) => {
+          if (err) {
+            console.log("Error executing the query: " + err);
+            return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
+          } else {
+            return res.status(200).json({ message: "Request accepted" });
+          }
+        });
+      }
+    });
+  } else if(requestData.user1id && requestData.user2id && requestData.decision === 'Rejected'){
+    // Request was rejected; delete existing request
+    const query = "DELETE FROM friends WHERE User1ID = ? AND User2ID = ? AND Status = 'Pending'";
+    connection.query(query, [requestData.user1id, requestData.user2id, requestData.decision], (err) => {
+      if (err) {
+        console.log("Error executing the query: " + err);
+        return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
+      } else {
+        return res.status(200).json({ message: "Request rejected" });
       }
     });
   } else {
@@ -254,13 +382,20 @@ router.post('/friend-requests/respond', (req, res) => {
 router.post('/friends/remove', (req, res) => {
   const requestData = req.body;
   if (requestData.user1id && requestData.user2id) {
-    const query = "UPDATE friends SET Status = 'Rejected' WHERE User1ID = ? AND User2ID = ? AND Status = 'Accepted'";
-    connection.query(query, [requestData.user1id, requestData.user2id], (err, results) => {
+    const query = "DELETE FROM friends WHERE User1ID = ? AND User2ID = ? AND Status = 'Accepted'";
+    connection.query(query, [requestData.user1id, requestData.user2id, requestData.decision], (err) => {
       if (err) {
         console.log("Error executing the query: " + err);
         return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
       } else {
-        return res.status(200).json({ message: "Response submitted" });
+        connection.query(query, [requestData.user2id, requestData.user1id, requestData.decision], (err) => {
+          if (err) {
+            console.log("Error executing the query: " + err);
+            return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
+          } else {
+            return res.status(200).json({ message: "Friendship removed" });
+          }
+        });
       }
     });
   } else {
@@ -273,11 +408,11 @@ router.get('/friends/all', (req, res) => {
 
   if (id) {
     const query = `
-      SELECT friends.User1ID, friends.Date, users.name, users.username
+      SELECT friends.User1ID, friends.User2ID, friends.Date, users.name, users.username
       FROM friends, users
       WHERE (friends.User1ID = ? OR friends.User2ID = ?)
       AND friends.Status = 'Accepted'
-      AND (friends.User1ID = users.id OR friends.User2ID = users.id)
+      AND friends.User2ID = users.id
       AND users.id != ?
     `;
     connection.query(query, [id, id, id], (err, results) => {
@@ -341,7 +476,7 @@ router.post('/blocked-users/create', (req, res) => {
         return res.status(200).json({ message: "Entry already exists" });
       } else {
         // Entry does not exist, perform the INSERT operation
-        connection.query(insertQuery, [requestData.user1, requestData.user2], (insertErr, insertResults) => {
+        connection.query(insertQuery, [requestData.user1, requestData.user2], (insertErr) => {
           if (insertErr) {
             console.log("Error executing the insert query: " + insertErr);
             return res.status(500).json({ error: "Oops! Something happened :(" });
