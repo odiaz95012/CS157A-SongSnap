@@ -211,11 +211,6 @@ function Settings() {
         fetchUserData();
     }, []);
 
-    const profileImage = {
-        width: '100%'
-    };
-
-
     return (
         <>
             <NavBar />
@@ -242,34 +237,32 @@ function Settings() {
                                 <img className='img-fluid square-img w-100' src='https://costionline.com/icons/profile-photos/4.webp' />
                             </div>
                             <div className='col-12 col-lg-8'>
-                                <form action="/submit" method="post">
-                                    <div className="mb-3">
-                                        <label htmlFor="formFile" className="form-label">Upload profile photo</label>
-                                        <input className="form-control" type="file" id="formFile" />
-                                    </div>
+                                <div className="mb-3">
+                                    <label htmlFor="formFile" className="form-label">Upload profile photo</label>
+                                    <input className="form-control" type="file" id="formFile" />
+                                </div>
 
-                                    <div className="form-group">
-                                        <label htmlFor="username">Username:</label>
-                                        <input type="text" className="form-control" id="username" name="username" onChange={e => setFormData(...formData, usern)} placeholder={userData?.Username} />
-                                    </div>
+                                <div className="form-group">
+                                    <label htmlFor="username">Username:</label>
+                                    <input type="text" className="form-control" id="username" name="username" onChange={e => setFormData({...formData, username: e.target.value })} placeholder={userData?.Username} />
+                                </div>
 
-                                    <div className="form-group">
-                                        <label htmlFor="name">Name:</label>
-                                        <input type="text" className="form-control" id="name" name="username" placeholder={userData?.name} />
-                                    </div>
+                                <div className="form-group">
+                                    <label htmlFor="name">Name:</label>
+                                    <input type="text" className="form-control" id="name" name="name" onChange={e => setFormData({...formData, name: e.target.value })} placeholder={userData?.name} />
+                                </div>
 
-                                    <div className="form-group mt-3">
-                                        <label htmlFor="email">Email address:</label>
-                                        <input type="email" className="form-control" id="email" name="email" placeholder={userData?.Email} />
-                                    </div>
+                                <div className="form-group mt-3">
+                                    <label htmlFor="email">Email address:</label>
+                                    <input type="email" className="form-control" id="email" name="email" onChange={e => setFormData({...formData, email: e.target.value })} placeholder={userData?.Email} />
+                                </div>
 
-                                    <div className="form-group mt-3">
-                                        <label htmlFor="password">Password:</label>
-                                        <input type="password" className="form-control" id="password" name="password" placeholder="Password" />
-                                    </div>
+                                <div className="form-group mt-3">
+                                    <label htmlFor="password">Password:</label>
+                                    <input type="password" className="form-control" id="password" name="password" onChange={e => setFormData({...formData, password: e.target.value })} placeholder="Password" />
+                                </div>
 
-                                    <button type="submit" className="btn btn-primary mt-3">Submit</button>
-                                </form>
+                                <button type="submit" className="btn btn-primary mt-3" onClick={editUserDetails}>Submit</button>
                             </div>
                         </div>
                     </div>
