@@ -282,7 +282,7 @@ const StoriesContainer: React.FC<StoriesContainerProps> = ({ userDetails }: Stor
       </div>
       <div className="scrolling-container d-flex justify-content-center">
         {activeStories.length === 0 ? (
-          <div className="no-stories-message">No stories :(</div>
+          <div className="no-stories-message">No stories yet :(</div>
         ) : (
           <div className="scrolling-container d-flex justify-content-center">
             {activeStories.map((story) => (
