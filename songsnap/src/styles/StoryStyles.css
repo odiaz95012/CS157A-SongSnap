@@ -1,6 +1,15 @@
 .avatar:hover {
     cursor: pointer;
 }
+
 .avatar {
+    border: 2px solid limegreen
+}
+
+.public-avatar {
+    border: 2px solid deepskyblue
+}
+
+.private-avatar {
     border: 2px solid limegreen
 }
