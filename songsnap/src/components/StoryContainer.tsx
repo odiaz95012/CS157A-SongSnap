@@ -4,6 +4,7 @@ import Modal from 'react-bootstrap/Modal';
 import { Row, Col, Button, Image } from 'react-bootstrap';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
 import '../styles/StoryStyles.css';
+import Cookies from 'js-cookie';
 
 interface Story {
   PostID: number;
@@ -28,8 +29,10 @@ interface StoryModalProps {
 const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => {
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
   const [player, setPlayer] = useState<JSX.Element | null>(null);
+  const [numLikes, setNumLikes] = useState<number>(0);
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [userData, setUserData] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     try {
@@ -48,6 +51,10 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
       try {
         const response = await axios.get('/users/id?id=' + story?.UserID);
         setUserData(response.data.Username);
+        const userIdString = await Cookies.get('userID');
+        const userIdNumber = userIdString ? parseInt(userIdString, 10) : undefined;
+        setCurrentUserId(userIdNumber);
+        await getLikes();
       } catch (error) {
         console.error('Error fetching user data:', error);
       }
@@ -72,11 +79,85 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
     );
   };
 
+  const like = async () => {
+    if (story) {
+      try {
+        const userID = await Cookies.get('userID');
+        await axios.post('/posts/like', {
+          postID: story.PostID,
+          userID: userID
+        });
+        await getLikes();
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      console.log("Error: 'story' is null or undefined");
+    }
+  };
+
+
+  const unlike = async () => {
+    if (story) {
+      try {
+        const userID = await Cookies.get('userID');
+        await axios.post('/posts/unlike', {
+          postID: story.PostID,
+          userID: userID
+        });
+        await getLikes();
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      console.log("Error: 'story' is null or undefined");
+    }
+  };
+
+  const handleLikeEvent = () => {
+    isLiked ? unlike() : like();
+    setIsLiked(!isLiked);
+  };
+
+
+  const getLikes = async () => {
+    if (story) {
+      try {
+        const userID = await Cookies.get('userID');
+        const response = await axios.get(`/posts/get/likes?postID=${story.PostID}&userID=${userID}`);
+
+        if (response.data) {
+          setNumLikes(response.data.likeCount);
+          response.data.isLiked ? setIsLiked(true) : setIsLiked(false);
+        } else {
+          setNumLikes(0);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      console.log("Error: 'story' is null or undefined");
+    }
+  };
+
+
+
   return (
     <Modal show={show} onHide={handleClose} centered size="sm">
-      <Modal.Header closeButton className="story-header">
-        <Modal.Title>{userData}</Modal.Title>
-      </Modal.Header >
+      <Modal.Header closeButton className="story-header" style={{ display: 'flex' }}>
+        {story && (
+          <Modal.Title>
+            <Image
+              src={story.profilePicture}
+              alt="Profile Picture"
+              className='profile-picture'
+              roundedCircle
+            />
+            {" " + userData}
+          </Modal.Title>
+        )}
+      </Modal.Header>
+
       <Modal.Body className='d-flex justify-content-center align-items-center story'>
         <div>
           {story ? (
@@ -84,23 +165,37 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
               {iframeLoaded && player ? (
                 <>
                   <Row>
-                    <Col xs={12} md={12} style={{ width: '175px', height: '0px', marginLeft: '25px' }}>
+                    <Col xs={12} md={12} style={{ width: '175px', height: '0px', marginRight: '140px' }}>
                       {player}
                     </Col>
                   </Row>
                   <Row className="mt-2" >
                     <Col md={12} style={{ width: '320px', height: '240px' }}>
-                      <Button variant='primary' className='like-btn me-1' onClick={() => setIsLiked(!isLiked)} style={{ marginLeft: "-55px", width: '150px' }}>
-                        {isLiked ? (
-                          <HeartFill className='icon' />
-                        ) : (
-                          <Heart className='icon' />
-                        )}
-                      </Button>
+                      {story.UserID != currentUserId && (
+                        <Button variant='primary' className='like-btn me-1' onClick={handleLikeEvent} style={{ marginLeft: "-55px", width: '150px' }}>
+                          {isLiked ? (
+                            <HeartFill className='icon' />
+                          ) : (
+                            <Heart className='icon' />
+                          )}
+                        </Button>
+                      )}
                     </Col>
                   </Row>
                   <Row className="mt-2" >
-                    <Col xs={12} md={4} style={{ width: '300px', height: '0px' }}>
+                    <Col xs={12} md={4} >
+                      {story.UserID === currentUserId && (
+                        <div className='like-count-container' style={{ marginTop: '325px', marginLeft: '135px'}}>
+                          <div className='like-count-icon' >
+                            <HeartFill className='icon' />
+                          </div>
+                          <span className="form-label like-count">: {numLikes}</span>
+                        </div>
+                      )}
+                    </Col>
+                  </Row>
+                  <Row className="mt-2" >
+                    <Col xs={12} md={4} style={{ width: '300px', height: '0px', marginLeft: '-10px' }}>
                       <div className='caption-container'>
                         <div className='caption-content text-center my-3' >
                           <p>{story?.Caption}</p>
