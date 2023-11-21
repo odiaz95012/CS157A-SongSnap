@@ -169,9 +169,9 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
                       {player}
                     </Col>
                   </Row>
-                  <Row className="mt-2" >
-                    <Col md={12} style={{ width: '320px', height: '240px' }}>
-                      {story.UserID != currentUserId && (
+                  {story.UserID != currentUserId && (
+                    <Row className="mt-2" >
+                      <Col md={12} style={{ width: '320px', height: '240px' }}>
                         <Button variant='primary' className='like-btn me-1' onClick={handleLikeEvent} style={{ marginLeft: "-55px", width: '150px' }}>
                           {isLiked ? (
                             <HeartFill className='icon' />
@@ -179,21 +179,23 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
                             <Heart className='icon' />
                           )}
                         </Button>
-                      )}
-                    </Col>
-                  </Row>
-                  <Row className="mt-2" >
-                    <Col xs={12} md={4} >
-                      {story.UserID === currentUserId && (
-                        <div className='like-count-container' style={{ marginTop: '325px', marginLeft: '135px'}}>
+                      </Col>
+                    </Row>
+                  )}
+                  {story.UserID === currentUserId && (
+                    <Row className="mt-2" >
+                      <Col xs={12} md={4} style={{ width: '500px', height: '240px' }}>
+
+                        <div className='like-count-container' style={{ marginTop: '320px', marginLeft: '215px' }}>
                           <div className='like-count-icon' >
                             <HeartFill className='icon' />
                           </div>
                           <span className="form-label like-count">: {numLikes}</span>
                         </div>
-                      )}
-                    </Col>
-                  </Row>
+
+                      </Col>
+                    </Row>
+                  )}
                   <Row className="mt-2" >
                     <Col xs={12} md={4} style={{ width: '300px', height: '0px', marginLeft: '-10px' }}>
                       <div className='caption-container'>
@@ -234,19 +236,33 @@ const StoriesContainer: React.FC<StoriesContainerProps> = ({ userDetails }: Stor
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
 
   useEffect(() => {
-    axios.get<Story[]>('/posts/get/activeStories')
-      .then(async (response) => {
+    const fetchActiveStories = async () => {
+      try {
+        const userID = await getCookie('userID');
+        const response = await axios.get<Story[]>('/posts/get/activeStories', {
+          params: {
+            userID: userID
+          }
+        });
+
         const storiesWithProfilePictures = await Promise.all(response.data.map(async (story) => {
           const userResponse = await axios.get<User>(`/users/id?id=${story.UserID}`);
           const storyWithProfilePicture = { ...story, profilePicture: userResponse.data.ProfilePicture };
           return storyWithProfilePicture;
         }));
+
         setActiveStories(storiesWithProfilePictures);
-      })
-      .catch(error => {
+      } catch (error) {
         console.error('Error fetching active stories:', error);
-      });
+      }
+    };
+
+    fetchActiveStories();
   }, []);
+
+  const getCookie = (name: string) => {
+    return Cookies.get(name);
+  }
 
 
   const handleImageClick = (story: Story) => {
@@ -272,7 +288,7 @@ const StoriesContainer: React.FC<StoriesContainerProps> = ({ userDetails }: Stor
             onClick={() => handleImageClick(story)}
           >
             <Image
-              className="avatar"
+              className={`avatar ${story.Visibility === 'public' ? 'public-avatar' : 'private-avatar'}`}
               src={story.profilePicture}
               alt={`Logo ${story.PostID}`}
               roundedCircle

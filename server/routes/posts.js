@@ -114,8 +114,16 @@ router.get('/get/friendSongSnaps', (req, res) => {
 
 //Retrieve all active stories from the db
 router.get('/get/activeStories', (req, res) => {
-  const query = "SELECT * FROM stories WHERE TIMESTAMPADD(HOUR, duration, date) > NOW()";
-  connection.query(query, (err, results) => {
+  const userID = req.query.userID;
+
+  const query = `
+    SELECT s.*
+    FROM stories s
+    LEFT OUTER JOIN friends f ON s.UserID = f.User2ID
+    WHERE (TIMESTAMPADD(HOUR, s.duration, s.date) > NOW() AND 
+    (s.UserID = ? OR s.visibility = 'public' OR (s.visibility = 'private' AND f.User1ID = ? AND f.Status = 'Accepted')));`;
+
+  connection.query(query, [userID, userID], (err, results) => {
     if (err) {
       console.log("Error executing the query:" + err);
       res.status(500).send("Error retrieving stories");
@@ -127,7 +135,7 @@ router.get('/get/activeStories', (req, res) => {
 
 //Get a user's song snaps
 router.get('/get/userSongSnaps', (req, res) => {
-  const userID = req.query.userID;  
+  const userID = req.query.userID;
 
   const query = "SELECT * FROM songsnaps WHERE UserID = ? ORDER BY Date DESC";
   connection.query(query, [userID], (err, results) => {
@@ -260,7 +268,7 @@ router.post('/publish/comment', (req, res) => {
 
 //delete comment
 router.post('/delete/comment', (req, res) => {
-  const { commentID} = req.body;
+  const { commentID } = req.body;
   if (!commentID) {
     return res.status(400).send('Please provide the comment ID.');
   }
