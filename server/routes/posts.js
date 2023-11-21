@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const connection = require('../db');
+const cron = require('node-cron');
 
 router.post('/create/songSnap', (req, res) => {
   const songSnapData = req.body;
@@ -29,7 +30,80 @@ router.post('/create/songSnap', (req, res) => {
           return res.status(500).send("Error posting the songsnap to the posts table.");
         }
 
-        return res.status(200).json(songSnapData);
+        const alreadyPostedQuery = `SELECT * FROM songsnaps WHERE UserID = ${userID} AND DATE(date) = CURDATE()`;
+
+        connection.query(alreadyPostedQuery, (err, postedResults) => {
+          if (err) {
+            console.log("Error executing the query:" + err);
+            return res.status(500).send("Error checking if user already posted today.");
+          }
+
+          if (postedResults.length > 1) {
+            // User has already posted today, do not affect streak
+            return res.status(200).json(songSnapData);
+          }
+
+          const activeStreakQuery = `SELECT * FROM streaks WHERE UserID = ${userID} AND EndDate IS NULL ORDER BY StreakID DESC LIMIT 1`;
+
+          connection.query(activeStreakQuery, (err, activeResults) => {
+            if (err) {
+              console.log("Error executing the query:" + err);
+              return res.status(500).send("Error checking active streak information.");
+            }
+
+            if (activeResults.length == 1) {
+              // User has an existing active streak, update the streak
+              const currentStreak = activeResults[0];
+              const updateStreakQuery = `UPDATE streaks SET Length = Length + 1 WHERE UserID = ? AND StreakID = ?`;
+              connection.query(updateStreakQuery, [userID, currentStreak.StreakID], (err) => {
+                if (err) {
+                  console.log("Error executing the query:" + err);
+                  return res.status(500).send("Error updating the active streak");
+                }
+
+                return res.status(200).json(songSnapData);
+              });
+            } else {
+              // Check if there are any prior inactive streaks
+              const inactiveStreakQuery = `SELECT * FROM streaks WHERE UserID = ${userID} AND EndDate IS NOT NULL ORDER BY StreakID DESC LIMIT 1`;
+
+              connection.query(inactiveStreakQuery, (err, inactiveResults) => {
+                if (err) {
+                  console.log("Error executing the query:" + err);
+                  return res.status(500).send("Error checking inactive streak information.");
+                }
+
+                if (inactiveResults.length > 0) {
+                  // User has prior existing inactive streaks, create a new streak with a new Streak ID
+                  const newStreakID = inactiveResults[0].StreakID + 1;
+                  const insertNewStreakQuery = "INSERT INTO streaks (UserID, StreakID, StartDate, Length) VALUES (?, ?, ?, ?)";
+                  const startDate = new Date(); // Use the current date as the start date
+                  connection.query(insertNewStreakQuery, [userID, newStreakID, startDate, 1], (err) => {
+                    if (err) {
+                      console.log("Error executing the query:" + err);
+                      return res.status(500).send("Error inserting the new streak");
+                    }
+
+                    return res.status(200).json(songSnapData);
+                  });
+                } else {
+                  // User has no prior existing inactive streaks, create a new streak with Streak ID 1
+                  const insertStreakQuery = "INSERT INTO streaks (UserID, StreakID, StartDate, Length) VALUES (?, ?, ?, ?)";
+                  const startDate = new Date(); // Use the current date as the start date
+                  const streakID = 1; // Initial streak ID
+                  connection.query(insertStreakQuery, [userID, streakID, startDate, 1], (err) => {
+                    if (err) {
+                      console.log("Error executing the query:" + err);
+                      return res.status(500).send("Error inserting the new streak");
+                    }
+
+                    return res.status(200).json(songSnapData);
+                  });
+                }
+              });
+            }
+          });
+        });
       });
     });
   } else {
@@ -114,8 +188,16 @@ router.get('/get/friendSongSnaps', (req, res) => {
 
 //Retrieve all active stories from the db
 router.get('/get/activeStories', (req, res) => {
-  const query = "SELECT * FROM stories WHERE TIMESTAMPADD(HOUR, duration, date) > NOW()";
-  connection.query(query, (err, results) => {
+  const userID = req.query.userID;
+
+  const query = `
+    SELECT s.*
+    FROM stories s
+    LEFT OUTER JOIN friends f ON s.UserID = f.User2ID
+    WHERE (TIMESTAMPADD(HOUR, s.duration, s.date) > NOW() AND 
+    (s.UserID = ? OR s.visibility = 'public' OR (s.visibility = 'private' AND f.User1ID = ? AND f.Status = 'Accepted')));`;
+
+  connection.query(query, [userID, userID], (err, results) => {
     if (err) {
       console.log("Error executing the query:" + err);
       res.status(500).send("Error retrieving stories");
@@ -127,7 +209,7 @@ router.get('/get/activeStories', (req, res) => {
 
 //Get a user's song snaps
 router.get('/get/userSongSnaps', (req, res) => {
-  const userID = req.query.userID;  
+  const userID = req.query.userID;
 
   const query = "SELECT * FROM songsnaps WHERE UserID = ? ORDER BY Date DESC";
   connection.query(query, [userID], (err, results) => {
@@ -260,7 +342,7 @@ router.post('/publish/comment', (req, res) => {
 
 //delete comment
 router.post('/delete/comment', (req, res) => {
-  const { commentID} = req.body;
+  const { commentID } = req.body;
   if (!commentID) {
     return res.status(400).send('Please provide the comment ID.');
   }

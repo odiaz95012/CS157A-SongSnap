@@ -1,13 +1,13 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import RegistrationForm from '../components/RegistrationForm';
 import NavBar from "../components/NavBar";
-import {Badge, Container} from 'react-bootstrap'
+import { Badge, Container } from 'react-bootstrap'
 import axios from 'axios';
-import {useParams} from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Cookies from 'js-cookie';
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import {PersonCheckFill} from "react-bootstrap-icons";
+import { PersonCheckFill } from "react-bootstrap-icons";
 import SongSnapPlayer from "../components/SongSnapPlayer";
 
 interface User {
@@ -28,6 +28,14 @@ interface Friend {
     username: string;
 }
 
+interface Streak {
+    PostID: number;
+    StreakID: number;
+    StartDate: string;
+    EndDate: string;
+    Length: number;
+}
+
 interface SongSnap {
     PostID: number;
     PromptID: number;
@@ -42,7 +50,7 @@ interface SongSnap {
     ProfilePicture: string;
 }
 
-interface SongSnapUserData{
+interface SongSnapUserData {
     Username: string;
     name: string;
     ProfilePicture: string;
@@ -56,6 +64,7 @@ function Profile() {
     const [profileUser, setProfileUser] = useState<User | null>(null);
     const [profileUserFriends, setProfileUserFriends] = useState<Friend[]>([]);
     const [profileUserPosts, setProfileUserPosts] = useState<SongSnap[]>([]);
+    const [profileUserStreak, setProfileUserStreak] = useState<Streak | null>(null);
     const fetchUserData = async () => {
         // get user id from cookie
         const userID = Cookies.get("userID");
@@ -92,6 +101,13 @@ function Profile() {
             .catch(error => {
                 console.error("Error fetching user data:", error);
             });
+        axios.get('/users/activeStreak?id=' + userID)
+            .then(response => {
+                setProfileUserStreak(response.data[0]);
+            })
+            .catch(error => {
+                console.error("Error fetching user streak data:", error);
+            });
     }
     //const userID = 1;
     useEffect(() => {
@@ -105,8 +121,8 @@ function Profile() {
     const renderHeader = () => {
         const profileButton = () => {
             function sendFriendRequest(ID: number | undefined) {
-                if(ID != undefined){
-                    axios.post('users/friend-requests/create', {"User1ID": loggedInUser?.ID, "User2ID": ID})
+                if (ID != undefined) {
+                    axios.post('users/friend-requests/create', { "User1ID": loggedInUser?.ID, "User2ID": ID })
                         .then(response => {
                             console.log("Response submitted");
                             // You might want to update the state or do something else upon success
@@ -121,11 +137,11 @@ function Profile() {
                 }
             }
 
-            if(profileUser?.ID === loggedInUser?.ID){
+            if (profileUser?.ID === loggedInUser?.ID) {
                 return (<button type="button" className="btn btn-primary btn-sm me-2 disabled"><PersonCheckFill className='icon' /></button>);
-            }else if(false){
+            } else if (false) {
                 //TODO: make it such that if the user already has this friend, it disables itself. Also if you do that, might as well add a friends counter as well
-            }else{
+            } else {
                 return (<button type="button" className="btn btn-primary btn-sm me-2" onClick={() => sendFriendRequest(profileUser?.ID)}><PersonCheckFill className='icon' /></button>);
             }
         };
@@ -133,6 +149,7 @@ function Profile() {
         if (!profileUser || accountID == undefined) {
             return (<h1 className='text-center fw-bold'>OOPS! There was an error :(</h1>); // or some fallback content if profileUser is null or undefined
         }
+
 
         return (
             <Container className='bg-light rounded-3 p-4 mt-2'>
@@ -145,13 +162,29 @@ function Profile() {
                         <h1 className='fw-bold text-center'>{profileUserFriends.length} Friends</h1>
                         <h1 className='fw-bold text-center'>{profileUserPosts.length} Posts</h1>
                     </Col>
-                    <Col sm={12} md={6} className='text-end'>
+                    <Col sm={6} md={3} className='text-end'>
+                        {profileUserStreak ? (
+                            <>
+                                {profileUserStreak.Length !== undefined && (
+                                    <h1 className='fw-bold text-center'>Streak: {profileUserStreak.Length}</h1>
+                                )}
+                                {profileUserStreak.StartDate && (
+                                    <h5 className='text-center'>Since {profileUserStreak.StartDate.substring(0, 10)}</h5>
+                                )}
+                            </>
+                        ) : (
+                            <h1 className='fw-bold text-center'>Streak: 0</h1>
+                        )}
+                    </Col>
+
+                    <Col sm={12} md={3} className='text-end'>
                         {profileButton()}
                     </Col>
                 </Row>
             </Container>
         );
     };
+
 
     const generateFeedSongSnaps = (songSnaps: SongSnap[]) => {
         return songSnaps.map((songSnap) => {
