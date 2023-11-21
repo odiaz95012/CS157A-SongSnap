@@ -1,27 +1,52 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Button, Image } from 'react-bootstrap';
-import { Heart, HeartFill, Chat, ChatFill } from 'react-bootstrap-icons';
+import { Row, Col, Image } from 'react-bootstrap';
+import { HeartFill, Bookmark, BookmarkFill } from 'react-bootstrap-icons';
 import '../styles/SongSnapPlayerStyles.css';
-
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import CommentsContainer from './CommentsContainer';
+interface User {
+  Username: string;
+  name: string;
+  ProfilePicture: string;
+}
 interface DzPlayerProps {
   dztype: string;
   trackID: number;
   backgroundTheme: string;
   caption?: string;
+  user: User;
+  postID: number;
+  ownerUserID: number;
+  currUserProfilePicture: string;
 }
 
-const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTheme, caption }) => {
+
+
+const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTheme, caption, user, postID, ownerUserID, currUserProfilePicture }) => {
+
+  interface Comment {
+    Text: string;
+    Date: string;
+    Username: string;
+    ID: number;
+    UserID: number;
+    ProfilePicture: string;
+  }
+
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
   const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [isFavorited, setIsFavorited] = useState<boolean>(false);
+  const [numLikes, setNumLikes] = useState<number>(0);
   const [isCommentOpen, setIsCommentOpen] = useState<boolean>(false);
   const [player, setPlayer] = useState<JSX.Element | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
 
   const formatBackgroundThemeTxt = (backgroundTheme: string): string => {
     return backgroundTheme.replace(/\s+/g, '').toLowerCase();
   }
 
   const generatePlayer = (trackID: number, dztype: string) => {
-    console.log(trackID);
     return (
       <iframe
         id="dzplayer"
@@ -38,18 +63,103 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
     setIsCommentOpen(!isCommentOpen);
   };
 
+  const like = async () => {
+    axios.post('/posts/like', {
+      postID: postID,
+      userID: await Cookies.get('userID')
+    }).then(async () => {
+      await getLikes();
+    }).catch((error) => {
+      console.log(error);
+    });
+  };
+
+  const unlike = async () => {
+    axios.post('/posts/unlike', {
+      postID: postID,
+      userID: await Cookies.get('userID')
+    }).then(async () => {
+      await getLikes();
+    }).catch((error) => {
+      console.log(error);
+    });
+  };
+
+
+
+  const getLikes = async () => {
+    axios.get(`/posts/get/likes?postID=${postID}&userID=${await Cookies.get('userID')}`)
+      .then((response) => {
+        if (response.data) {
+          setNumLikes(response.data.likeCount);
+          response.data.isLiked ? setIsLiked(true) : setIsLiked(false);
+        } else {
+          // No likes for the post, set numLikes to 0
+          setNumLikes(0);
+        }
+      }).catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const getComments = async () => {
+    axios.get(`/posts/get/comments?postID=${postID}`)
+      .then((response) => {
+        setComments(response.data);
+      }).catch((error) => { console.log(error) });
+  };
+
+
+  const handleLikeEvent = () => {
+
+    // If isLiked is true, call unlike; if false, call like
+    isLiked ? unlike() : like();
+    // Toggle the isLiked state
+    setIsLiked(!isLiked);
+  };
+
+  const favorite = async () => {
+    axios.post('/posts/favorite', {
+      songSnapID: postID,
+      userID: await Cookies.get('userID')
+    }).catch((error) => {
+      console.log(error);
+    })
+  };
+  const unfavorite = async () => {
+    axios.post('/posts/unfavorite', {
+      songSnapID: postID,
+      userID: await Cookies.get('userID')
+    }).catch((error) => {
+      console.log(error);
+    })
+  };
+
+  const handleFavoriteEvent = () => {
+    // If isFavorited is true, call unfavorite; if false, call favorite
+    isFavorited ? unfavorite() : favorite();
+    // Toggle the isFavorited state
+    setIsFavorited(!isFavorited);
+  };
+
+
   useEffect(() => {
-    try {
-      const generatedPlayer = generatePlayer(trackID, dztype);
-      setPlayer(generatedPlayer);
-      setIframeLoaded(true);
-    } catch (e) {
-      console.log('Error generating player:', e);
+    const fetchData = async () => {
+      try {
+        const generatedPlayer = generatePlayer(trackID, dztype);
+        setPlayer(generatedPlayer);
+        await getLikes();
+        await getComments();
+        setIframeLoaded(true);
+      } catch (e) {
+        console.log('Error generating player:', e);
+      }
     }
+    fetchData();
   }, [trackID, dztype]);
 
   return (
-    <div className='container text-center player-container my-3'>
+    <div className='container text-center'>
       {backgroundTheme && (
         <div className='theme-container'>
           {iframeLoaded && player ? (
@@ -66,24 +176,44 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
               </Row>
               <Row>
                 <Col md={4}>
-                  <Button variant='primary' className='like-btn me-1' onClick={() => setIsLiked(!isLiked)}>
-                    {isLiked ? (
+                  <div className='like-count-container'>
+                    <div className='like-count-icon'>
                       <HeartFill className='icon' />
-                    ) : (
-                      <Heart className='icon' />
-                    )}
-                  </Button>
+                    </div>
+                    <span className="form-label like-count">: {numLikes}</span>
+                  </div>
+                </Col>
+                <Col>
+                  <div className='profile-picture-container'>
+                      <Image
+                        src={user.ProfilePicture}
+                        alt="Profile Picture"
+                        className='profile-picture'
+                        roundedCircle
+                        />
+                  </div>
+                </Col>
+              </Row>
+              <Row>
+                <Col md={4}>
+                  <a className={`like-btn me-1 ${isLiked ? 'liked' : ''}`} onClick={handleLikeEvent}>
+                    <HeartFill className='like-icon' />
+                  </a>
                 </Col>
                 <Col md={4}>
-                  <Button variant='primary' className='comment-btn' onClick={toggleComment}>
-                    {isCommentOpen ? (
-                      <ChatFill className='icon' />
+                  <a className="comment-btn" onClick={toggleComment}>
+                    <CommentsContainer comments={comments} postID={postID} postOwnerUserID={ownerUserID} currUserProfilePicture={currUserProfilePicture}/>
+                  </a>
+                </Col>
+                <Col md={4}>
+                  <a className="fav-post-btn" onClick={handleFavoriteEvent}>
+                    {isFavorited ? (
+                      <BookmarkFill className='fav-icon' />
                     ) : (
-                      <Chat className='icon' />
+                      <Bookmark className='fav-icon' />
                     )
                     }
-
-                  </Button>
+                  </a>
                 </Col>
               </Row>
               <Row>
@@ -95,24 +225,11 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
                 <Col xs={4} md={12}>
                   <div className='caption-container'>
                     <div className='caption-content'>
-                      <p>{caption}</p>
+                      <p>{user.Username}: {caption}</p>
                     </div>
                   </div>
                 </Col>
               </Row>
-              {isCommentOpen && (
-                <Row>
-
-                  <Col xs={6} md={12}>
-                    <div className='comments-container'>
-                      <input type='text' className="form-control publish-comment" placeholder='Add a comment...' />
-                      <div className='comments-content'>
-                        <p>Comment</p>
-                      </div>
-                    </div>
-                  </Col>
-                </Row>
-              )}
             </>
           ) : (
             <div className="loading-state">Loading...</div>

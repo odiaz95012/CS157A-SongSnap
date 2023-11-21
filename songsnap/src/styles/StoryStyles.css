@@ -1,0 +1,6 @@
+.avatar:hover {
+    cursor: pointer;
+}
+.avatar {
+    border: 2px solid limegreen
+}

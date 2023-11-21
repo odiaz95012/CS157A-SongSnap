@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import axios, { AxiosRequestConfig } from 'axios';
+import axios from 'axios';
 import Modal from 'react-bootstrap/Modal';
 import { Row, Col, Button, Image } from 'react-bootstrap';
-import { Heart, HeartFill, Chat, ChatFill } from 'react-bootstrap-icons';
-import Cookies from 'js-cookie';
+import { Heart, HeartFill } from 'react-bootstrap-icons';
+import '../styles/StoryStyles.css';
 
 interface Story {
   PostID: number;
@@ -13,7 +13,9 @@ interface Story {
   Caption: string;
   Duration: number;
   UserID: number;
+  profilePicture: string;
 }
+
 
 interface StoryModalProps {
   show: boolean;
@@ -21,8 +23,7 @@ interface StoryModalProps {
   story: Story | null;
 }
 
-// Define StoryModal component
-// ... (Imports remain the same)
+
 
 const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => {
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
@@ -65,7 +66,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
         data-dztype='dzplayer'
         src={`https://www.deezer.com/plugins/player?type=tracks&id=${trackID}&format=classic&color=007FEB&autoplay=true&playlist=true&width=100%&height=100%`}
         className="player"
-        style={{ width: '25vh', height: '25vh', position: 'relative' }}
+        style={{ width: '250px', height: '250px', position: 'relative' }}
         onLoad={() => setIframeLoaded(true)}
       />
     );
@@ -83,13 +84,13 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
               {iframeLoaded && player ? (
                 <>
                   <Row>
-                    <Col xs={12} md={12} style={{ width: '175px', height: '0px' }}>
+                    <Col xs={12} md={12} style={{ width: '175px', height: '0px', marginLeft: '25px' }}>
                       {player}
                     </Col>
                   </Row>
                   <Row className="mt-2" >
                     <Col md={12} style={{ width: '320px', height: '240px' }}>
-                      <Button variant='primary' className='like-btn me-1' onClick={() => setIsLiked(!isLiked)} style={{ marginLeft: "-55px", width: '150px'}}>
+                      <Button variant='primary' className='like-btn me-1' onClick={() => setIsLiked(!isLiked)} style={{ marginLeft: "-55px", width: '150px' }}>
                         {isLiked ? (
                           <HeartFill className='icon' />
                         ) : (
@@ -101,7 +102,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
                   <Row className="mt-2" >
                     <Col xs={12} md={4} style={{ width: '300px', height: '0px' }}>
                       <div className='caption-container'>
-                        <div className='caption-content' text-center my-3>
+                        <div className='caption-content text-center my-3' >
                           <p>{story?.Caption}</p>
                         </div>
                       </div>
@@ -121,20 +122,37 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
   );
 };
 
-const StoriesContainer: React.FC = () => {
+
+interface User {
+  Username: string;
+  name: string;
+  ProfilePicture: string;
+  ID: number;
+}
+interface StoriesContainerProps {
+  userDetails: User;
+}
+
+const StoriesContainer: React.FC<StoriesContainerProps> = ({ userDetails }: StoriesContainerProps) => {
   const [activeStories, setActiveStories] = useState<Story[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
 
   useEffect(() => {
     axios.get<Story[]>('/posts/get/activeStories')
-      .then(response => {
-        setActiveStories(response.data);
+      .then(async (response) => {
+        const storiesWithProfilePictures = await Promise.all(response.data.map(async (story) => {
+          const userResponse = await axios.get<User>(`/users/id?id=${story.UserID}`);
+          const storyWithProfilePicture = { ...story, profilePicture: userResponse.data.ProfilePicture };
+          return storyWithProfilePicture;
+        }));
+        setActiveStories(storiesWithProfilePictures);
       })
       .catch(error => {
         console.error('Error fetching active stories:', error);
       });
   }, []);
+
 
   const handleImageClick = (story: Story) => {
     setSelectedStory(story);
@@ -144,6 +162,7 @@ const StoriesContainer: React.FC = () => {
   const handleCloseModal = () => {
     setShowModal(false);
   };
+
 
   return (
     <div className="container mt-3">
@@ -159,8 +178,9 @@ const StoriesContainer: React.FC = () => {
           >
             <Image
               className="avatar"
-              src={require('../images/logo.png')}
+              src={story.profilePicture}
               alt={`Logo ${story.PostID}`}
+              roundedCircle
             />
           </div>
         ))}

@@ -5,23 +5,31 @@
     width: 70%;
     height: 70px;
     overflow: auto;
-
     z-index: 1;
-    /* Set a z-index value to control the stacking order */
 }
+
 
 .player-container {
     position: relative;
-    width: 600px;
-    height: 350px;
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    z-index: 1;
 }
+
+.theme-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+  }
 
 .theme {
     border-radius: 15px;
     width: 600px;
     height: 400px;
     z-index: 0;
-    /* Lower z-index to make it appear below the player */
 }
 
 .story-header {
@@ -30,7 +38,6 @@
 }
 
 .story {
-
     background-color: white;
     width: '225px';
     height: '300px';
@@ -49,12 +56,48 @@
 .like-btn {
     position: absolute;
     top: 90%;
-    left: 58%;
+    left: 59%;
     transform: translate(-30%, -70%);
     width: 45px;
     height: 45px;
     z-index: 2;
-    /* Set a higher z-index to make it appear above the player */
+    color: white;
+    border-radius: 25%;
+}
+
+.fav-post-btn {
+    position: absolute;
+    top: 90%;
+    left: 76%;
+    transform: translate(-30%, -70%);
+    width: 45px;
+    height: 45px;
+    z-index: 2;
+    color: yellow;
+    border-radius: 25%;
+}
+.favorited {
+    background-color: yellow;
+}
+
+.favorited:hover {
+    cursor: pointer;
+    background-color: rgba(211, 211, 211, 0.5);
+}
+
+.fav-icon {
+    width: 35px;
+    height: 25px;
+    margin-top: 10px;
+}
+
+.like-btn:hover {
+    cursor: pointer;
+    background-color: rgba(211, 211, 211, 0.5);
+}
+
+.liked {
+    color: red;
 }
 
 .comment-btn {
@@ -64,24 +107,28 @@
     transform: translate(-30%, -70%);
     width: 45px;
     height: 45px;
+    color: white;
     z-index: 2;
-    /* Set a higher z-index to make it appear above the player */
+    justify-content: center;
+    align-content: center;
+    border-radius: 25%;
+}
+
+.comment-btn:hover {
+    background-color: rgba(211, 211, 211, 0.5);
+    cursor: pointer;
 }
 
 .icon {
-    width: 20px;
-    height: 20px;
-    margin-bottom: 5px;
+    width: 35px;
+    height: 30px;
+    margin-top: 5px;
 }
 
-.comments-container {
-    background-color: rgba(22, 22, 24, 0.9);
-    width: 100%;
-    margin-left: 10px;
-
-    min-height: 35px;
-    color: white;
-
+.like-icon {
+    width: 35px;
+    height: 30px;
+    margin-top: 7px;
 }
 
 .caption-container {
@@ -90,14 +137,63 @@
     width: 100%;
     margin-left: 10px;
     min-height: 35px;
-
+    border-radius: 25px;
+    text-align: center;
 }
 
 .caption-content {
-    font-size: 21px;
+    font-size: 18px;
+    padding-left: 15px;
+    padding-right: 15px;
+
 }
 
 .publish-comment {
     width: 50%;
     margin-left: 25%;
+}
+
+.like-count-container {
+    position: absolute;
+    top: 10%;
+    left: 5%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+    margin-left: 25px;
+    color: white;
+    background-color: rgba(22, 22, 24, 0.5);
+    min-width: 50px;
+    min-height: 50px;
+    text-align: center;
+    display: flex;
+    border-radius: 15px;
+    text-overflow: ellipsis;
+    max-width: 20%;
+    padding: 0px 5px;
+}
+
+.like-count-icon {
+    width: 20px;
+    height: 20px;
+    margin-top: 5px;
+    color: red;
+}
+
+.like-count {
+    font-size: 21px;
+    padding-left: 15px;
+    padding-top: 7px;
+}
+
+.profile-picture-container {
+    position: absolute;
+    top: 10%;
+    left: 95%;
+    transform: translate(-50%, -50%);
+    z-index: 2;
+}
+
+.profile-picture {
+    width: 50px;
+    height: 50px;
 }

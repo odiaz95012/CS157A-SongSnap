@@ -30,7 +30,7 @@ function Login() {
             password: formData.password
         }).then((response) => {
             Cookies.set('userID', response.data.id);
-            console.log(response);
+            Cookies.set('username', response.data.username);
             navigate('/home');
         }).catch((err) => {
             console.log(err);

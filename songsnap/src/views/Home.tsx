@@ -6,25 +6,18 @@ import SongSnapPlayer from '../components/SongSnapPlayer';
 import PopUpModal from '../components/PopUpModal';
 import SongSnapForm from '../components/SongSnapForm';
 import Cookies from 'js-cookie';
+import DailyPrompt from '../components/DailyPrompt';
 import StoriesContainer from '../components/StoryContainer';
+
 
 function Home() {
     const [activeView, setActiveView] = useState<string>('main-feed');
-    const [songName, setSongName] = useState<string>('');
-    const [songID, setSongID] = useState<number | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [songSnapPlayer, setSongSnapPlayer] = useState<JSX.Element | null>(null);
-    const [isPlayerVisible, setPlayerVisible] = useState<boolean>(false);
-    const [isFeedsGenerated, setIsFeedsGenerated] = useState<boolean>(false);
+
 
     const handleActiveFeedChange = (view: string) => {
         setActiveView(view);
     };
 
-    const handleSongName = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let song = e.target.value;
-        setSongName(song.replaceAll(' ', '%20'));
-    };
 
     const options: AxiosRequestConfig = {
         method: 'GET',
@@ -44,7 +37,6 @@ function Home() {
                     q: `${songName} ${artistName}`, // Set the song and artist name as a parameter
                 },
             });
-            setSongID(response.data.data[0].id);
             return response.data.data[0].id;
         } catch (error) {
             console.error(error);
@@ -52,25 +44,30 @@ function Home() {
     };
 
 
-    const generatePlayer = async (backgroundTheme: string, caption: string, songID: number): Promise<JSX.Element | void> => {
-        // Set isLoading to true when generating the player
-        setIsLoading(true);
-
+    const generatePlayer = async (backgroundTheme: string, caption: string, songID: number, userDetails: User, postID: number): Promise<JSX.Element | void> => {
         try {
             if (songID) {
-                const player = <SongSnapPlayer dztype="dzplayer" trackID={songID} backgroundTheme={backgroundTheme} caption={caption} />;
-                setSongSnapPlayer(player);
+                const player = <SongSnapPlayer
+                    dztype="dzplayer"
+                    trackID={songID}
+                    backgroundTheme={backgroundTheme}
+                    caption={caption}
+                    user={userDetails}
+                    postID={postID}
+                    ownerUserID={userDetails.ID}
+                    currUserProfilePicture={userDetails.ProfilePicture}
+                />;
+
 
             }
         } catch (error) {
             console.error(error);
         }
-        setIsLoading(false);
     };
 
 
 
-    const postSongSnap = async (backgroundTheme: string, caption: string, visibility: string, songName: string, artistName: string) => {
+    const postSongSnap = async (backgroundTheme: string, caption: string, visibility: string, songName: string, artistName: string, userDetails: User) => {
         const userID = await getCookie('userID');
         const songID = await getSongID(songName, artistName);
         if (userID && songID) {
@@ -82,13 +79,15 @@ function Home() {
                 userID: userID,
                 promptID: 1
             })
-                .then((response) => {
+                .then(async (response) => {
                     if (visibility === 'public') { // post songsnap to main feed
                         setMainFeedSongSnaps([response.data, ...mainFeedSongSnaps]);
                     } else { // post songsnap to friends feed
                         setFriendsFeedSongSnaps([response.data, ...friendsFeedSongSnaps]);
                     }
-                    generateSongSnap(backgroundTheme, caption, songID);
+                    const postID = response.data.PostID;
+                    await generateSongSnap(backgroundTheme, caption, songID, userDetails, postID);
+                    window.location.reload();
                 })
                 .catch((error) => {
                     console.log(error);
@@ -98,10 +97,8 @@ function Home() {
         }
     };
 
-    const generateSongSnap = (backgroundTheme: string, caption: string, songID: number) => {
-
-        generatePlayer(backgroundTheme, caption, songID);
-        setPlayerVisible(true);
+    const generateSongSnap = (backgroundTheme: string, caption: string, songID: number, userDetails: User, postID: number) => {
+        generatePlayer(backgroundTheme, caption, songID, userDetails, postID);
     };
 
     interface SongSnapInputData {
@@ -122,7 +119,6 @@ function Home() {
     });
 
     const handleSongSnapUpload = (formData: SongSnapInputData) => {
-        // Do something with the form data, e.g., send it to an API or update the state
         setSongSnapData(formData);
     };
 
@@ -139,10 +135,14 @@ function Home() {
         Caption: string;
         Theme: string;
         UserID: number;
+        Username: string;
+        name: string;
+        ProfilePicture: string;
     }
     const [mainFeedSongSnaps, setMainFeedSongSnaps] = useState<SongSnap[]>([]);
     const [friendsFeedSongSnaps, setFriendsFeedSongSnaps] = useState<SongSnap[]>([]);
     const [isFeedsLoaded, setIsFeedsLoaded] = useState<boolean>(false);
+    const [currUserDetails, setCurrUserDetails] = useState<User>({ Username: '', name: '', ProfilePicture: '', ID: 0 });
 
     const getMainFeedSongSnaps = async () => {
         try {
@@ -180,7 +180,34 @@ function Home() {
         }
     };
 
+    interface User {
+        Username: string;
+        name: string;
+        ProfilePicture: string;
+        ID: number;
+    }
+
+    interface Prompt {
+        ID: number;
+        PromptText: string;
+        Theme: string;
+    }
+
+
+
+
+
     useEffect(() => {
+        const getUserDetails = async () => {
+            try {
+                const userID = await getCookie('userID');
+                const response = await axios.get('/users/id?id=' + userID);
+                setCurrUserDetails(response.data);
+
+            } catch (error) {
+                console.error(error);
+            }
+        };
         const populateFeeds = async () => {
             try {
                 const mainFeedSongSnaps = await getMainFeedSongSnaps();
@@ -194,18 +221,40 @@ function Home() {
                 console.error(error);
             }
         };
+
+        getUserDetails();
         populateFeeds();
     }, []);
 
 
+
+
+
+
     const generateFeedSongSnaps = (songSnaps: SongSnap[]) => {
-        return songSnaps.map((songSnap) => (
-            <div className='player-container' key={songSnap.PostID}>
-                <SongSnapPlayer dztype="dzplayer" trackID={songSnap.SongID} backgroundTheme={songSnap.Theme} caption={songSnap.Caption} />
+        return songSnaps.map((songSnap) => {
+            const profileDetails: User = {
+                Username: songSnap.Username,
+                name: songSnap.name,
+                ProfilePicture: songSnap.ProfilePicture,
+                ID: songSnap.UserID
+            };
 
-            </div>
-
-        ));
+            return (
+                <div className='player-container' key={songSnap.PostID}>
+                    <SongSnapPlayer
+                        dztype="dzplayer"
+                        trackID={songSnap.SongID}
+                        backgroundTheme={songSnap.Theme}
+                        caption={songSnap.Caption}
+                        user={profileDetails}
+                        postID={songSnap.PostID}
+                        ownerUserID={songSnap.UserID}
+                        currUserProfilePicture={currUserDetails.ProfilePicture}
+                    />
+                </div>
+            );
+        });
     };
 
 
@@ -222,15 +271,19 @@ function Home() {
                     <div className="row gx-5 justify-content-center">
                         <div className="col-lg-6">
                             <div className="text-center my-5">
+
                                 <h1 className="display-5 fw-bolder text-white mb-2">Prompt of the Day</h1>
-                                <p className="lead text-white-50 mb-4">INSERT PROMPT HERE</p>
+                                <DailyPrompt />
+                                {/* <p className="lead text-white mb-4">{dailyPrompt.PromptText}</p>
+                                        <p className='text-white-50'>Theme: {dailyPrompt.Theme}</p> */}
+
                                 <div className="d-grid gap-4 d-sm-flex justify-content-sm-center">
                                     <PopUpModal
                                         title='Create a SongSnap'
                                         body={<SongSnapForm onFormSubmit={handleSongSnapUpload} />}
                                         submitButtonText='Publish SongSnap'
                                         openButtonText='Create SongSnap'
-                                        functionToExecute={() => postSongSnap(songSnapData.backgroundTheme, songSnapData.caption, songSnapData.privacy, songSnapData.songName, songSnapData.artistName)}
+                                        functionToExecute={() => postSongSnap(songSnapData.backgroundTheme, songSnapData.caption, songSnapData.privacy, songSnapData.songName, songSnapData.artistName, currUserDetails)}
                                     />
                                 </div>
                             </div>
@@ -239,7 +292,7 @@ function Home() {
                 </div>
             </header>
             {/* Stories Container */}
-            <StoriesContainer />
+            <StoriesContainer userDetails={currUserDetails} />
 
             {/* Feed Container */}
             <div className="d-flex-1 text-center justify-content-center align-items-center mt-3">
@@ -264,15 +317,16 @@ function Home() {
                 </div>
             </div>
 
+
+
             <div className="container overflow-auto text-center d-flex justify-content-center align-items-center h-100 feed-container my-3">
                 {/* Main Feed View */}
                 <div id="main-feed" className={`view ${activeView === 'main-feed' ? 'active-view' : ''}`}>
                     <div className="container text-center">
                         <h1>Main Feed</h1>
-                        {/* Add main feed content here */}
                         <div className='row'>
                             <div className='container'>
-                                <div className='col-md-12 my-4'>
+                                <div className='col-md-12 my-5'>
                                     {isFeedsLoaded ? (
                                         generateFeedSongSnaps(mainFeedSongSnaps)
                                     ) : (
@@ -288,10 +342,9 @@ function Home() {
                 <div id="friends-feed" className={`view ${activeView === 'friends-feed' ? 'active-view' : ''}`}>
                     <div className="container text-center">
                         <h1>Friends Feed</h1>
-                        {/* Add friends feed content here */}
                         <div className='row'>
                             <div className='container'>
-                                <div className='col-md-12 my-4'>
+                                <div className='col-md-12 my-5'>
                                     {isFeedsLoaded ? (
                                         generateFeedSongSnaps(friendsFeedSongSnaps)
                                     ) : (
