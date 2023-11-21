@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 const connection = require('../db');
-const {request, response} = require("express");
 const multer = require('multer');
 const upload = multer();
 const bcrypt = require('bcryptjs');
@@ -10,7 +9,7 @@ const AWS = require('aws-sdk');
 
 const s3 = new AWS.S3({
   accessKeyId: 'ACCESS_KEY',
-  secretAccessKey: 'SECRET_KEY',
+  secretAccessKey: 'SECRET_ACCESS_KEY',
   region: 'us-west-1'
 });
 
