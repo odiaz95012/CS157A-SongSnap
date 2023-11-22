@@ -211,7 +211,12 @@ router.get('/get/activeStories', (req, res) => {
 router.get('/get/userSongSnaps', (req, res) => {
   const userID = req.query.userID;
 
-  const query = "SELECT * FROM songsnaps WHERE UserID = ? ORDER BY Date DESC";
+  const query =`
+          SELECT ss.*, u.Username, u.name, u.ProfilePicture
+          FROM songsnaps ss
+          JOIN users u ON ss.UserID = u.ID  
+          WHERE ss.UserID = ? 
+          ORDER BY Date DESC`;
   connection.query(query, [userID], (err, results) => {
     if (err) {
       console.log("Error executing the query:" + err);
@@ -389,6 +394,25 @@ router.post('/unfavorite', (req, res) => {
       return res.status(500).send("Error unfavoriting the post");
     }
     return res.status(200).json(favoriteData);
+  });
+});
+
+//get all favorited posts for a user
+router.get('/get/favorites', (req, res) => {
+  const userID = req.query.userID;
+  const query = `
+    SELECT ss.*, u.Username, u.name, u.ProfilePicture
+    FROM songsnaps ss, pinned p, users u
+    WHERE ss.PostID = p.SongSnapID AND p.UserID = u.ID AND p.UserID = ?
+    ORDER BY ss.Date DESC;
+  `;
+  connection.query(query, [userID], (err, results) => {
+    if (err) {
+      console.log("Error executing the query:" + err);
+      res.status(500).send("Error retrieving favorited posts");
+    } else {
+      res.status(200).json(results);
+    }
   });
 });
 

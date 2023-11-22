@@ -19,11 +19,12 @@ interface DzPlayerProps {
   postID: number;
   ownerUserID: number;
   currUserProfilePicture: string;
+  pinned?: boolean;
 }
 
 
 
-const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTheme, caption, user, postID, ownerUserID, currUserProfilePicture }) => {
+const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTheme, caption, user, postID, ownerUserID, currUserProfilePicture, pinned }) => {
 
   interface Comment {
     Text: string;
@@ -185,12 +186,12 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
                 </Col>
                 <Col>
                   <div className='profile-picture-container'>
-                      <Image
-                        src={user.ProfilePicture}
-                        alt="Profile Picture"
-                        className='profile-picture'
-                        roundedCircle
-                        />
+                    <Image
+                      src={user.ProfilePicture}
+                      alt="Profile Picture"
+                      className='profile-picture'
+                      roundedCircle
+                    />
                   </div>
                 </Col>
               </Row>
@@ -202,17 +203,22 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
                 </Col>
                 <Col md={4}>
                   <a className="comment-btn" onClick={toggleComment}>
-                    <CommentsContainer comments={comments} postID={postID} postOwnerUserID={ownerUserID} currUserProfilePicture={currUserProfilePicture}/>
+                    <CommentsContainer comments={comments} postID={postID} postOwnerUserID={ownerUserID} currUserProfilePicture={currUserProfilePicture} />
                   </a>
                 </Col>
                 <Col md={4}>
                   <a className="fav-post-btn" onClick={handleFavoriteEvent}>
-                    {isFavorited ? (
+                    {pinned ? (
                       <BookmarkFill className='fav-icon' />
                     ) : (
-                      <Bookmark className='fav-icon' />
-                    )
-                    }
+                      isFavorited ? (
+                        <BookmarkFill className='fav-icon' />
+                      ) : (
+                        <Bookmark className='fav-icon' />
+                      )
+                    )}
+
+
                   </a>
                 </Col>
               </Row>

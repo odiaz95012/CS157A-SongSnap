@@ -1,11 +1,14 @@
 var express = require('express');
-const cors = require('cors')
+const cors = require('cors');
 const cookieParser = require('cookie-parser');
+
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var promptsRouter = require('./routes/prompts');
 var postsRouter = require('./routes/posts');
+
+
 
 var app = express();
 app.use(cors());
@@ -39,5 +42,6 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
+
 
 module.exports = app;
