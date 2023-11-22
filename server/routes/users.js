@@ -9,8 +9,8 @@ const cron = require('node-cron');
 
 
 const s3 = new AWS.S3({
-  accessKeyId: 'ACCESS_KEY',
-  secretAccessKey: 'SECRET_ACCESS_KEY',
+  accessKeyId: 'AKIAUADVGEK76UEY3L6U',
+  secretAccessKey: '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',
   region: 'us-west-1'
 });
 

@@ -7,8 +7,9 @@ import { useParams } from "react-router-dom";
 import Cookies from 'js-cookie';
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import { PersonCheckFill } from "react-bootstrap-icons";
-import SongSnapPlayer from "../components/SongSnapPlayer";
+import { PersonCheckFill, Fire } from "react-bootstrap-icons";
+import ProfileTabs from '../components/ProfileTabs';
+
 
 interface User {
     ID: number;
@@ -50,24 +51,18 @@ interface SongSnap {
     ProfilePicture: string;
 }
 
-interface SongSnapUserData {
-    Username: string;
-    name: string;
-    ProfilePicture: string;
-    ID: number;
-}
 
 function Profile() {
     const { accountID } = useParams();
-    const [isFeedsLoaded, setIsFeedsLoaded] = useState<boolean>(false);
     const [loggedInUser, setLoggedInUser] = useState<User | null>(null);
     const [profileUser, setProfileUser] = useState<User | null>(null);
     const [profileUserFriends, setProfileUserFriends] = useState<Friend[]>([]);
     const [profileUserPosts, setProfileUserPosts] = useState<SongSnap[]>([]);
+    const [profileUserPinnedPosts, setProfileUserPinnedPosts] = useState<SongSnap[]>([]);
     const [profileUserStreak, setProfileUserStreak] = useState<Streak | null>(null);
     const fetchUserData = async () => {
         // get user id from cookie
-        const userID = Cookies.get("userID");
+        const userID = await Cookies.get("userID");
         // Fetch user data
         axios.get('/users/id?id=' + userID)
             .then(response => {
@@ -84,6 +79,14 @@ function Profile() {
             .catch(error => {
                 console.error("Error fetching user data:", error);
             });
+        
+        axios.get('/posts/get/favorites/?userID=' + userID)
+            .then(response => {
+                setProfileUserPinnedPosts(response.data);
+            })
+            .catch(error => {
+                console.error("Error fetching user's pinned posts:", error);
+            });    
 
         axios.get('/users/id?id=' + accountID)
             .then(response => {
@@ -113,7 +116,6 @@ function Profile() {
     useEffect(() => {
         const fetchData = async () => {
             await fetchUserData();
-            setIsFeedsLoaded(true);
         }
         fetchData();
     }, []);
@@ -121,7 +123,7 @@ function Profile() {
     const renderHeader = () => {
         const profileButton = () => {
             function sendFriendRequest(ID: number | undefined) {
-                if (ID != undefined) {
+                if (ID !== undefined) {
                     axios.post('users/friend-requests/create', { "User1ID": loggedInUser?.ID, "User2ID": ID })
                         .then(response => {
                             console.log("Response submitted");
@@ -146,7 +148,7 @@ function Profile() {
             }
         };
 
-        if (!profileUser || accountID == undefined) {
+        if (!profileUser || accountID === undefined) {
             return (<h1 className='text-center fw-bold'>OOPS! There was an error :(</h1>); // or some fallback content if profileUser is null or undefined
         }
 
@@ -166,7 +168,7 @@ function Profile() {
                         {profileUserStreak ? (
                             <>
                                 {profileUserStreak.Length !== undefined && (
-                                    <h1 className='fw-bold text-center'>Streak: {profileUserStreak.Length}</h1>
+                                    <h1 className='fw-bold text-center'><Fire className='mb-2' style={{ color: 'rgb(255, 119, 0)' }} />Streak: {profileUserStreak.Length}</h1>
                                 )}
                                 {profileUserStreak.StartDate && (
                                     <h5 className='text-center'>Since {profileUserStreak.StartDate.substring(0, 10)}</h5>
@@ -186,42 +188,18 @@ function Profile() {
     };
 
 
-    const generateFeedSongSnaps = (songSnaps: SongSnap[]) => {
-        return songSnaps.map((songSnap) => {
-            const profileDetails: SongSnapUserData = {
-                Username: songSnap.Username,
-                name: songSnap.name,
-                ProfilePicture: songSnap.ProfilePicture,
-                ID: songSnap.UserID
-            };
-
-            return (
-                <div className='player-container' key={songSnap.PostID}>
-                    <SongSnapPlayer
-                        dztype="dzplayer"
-                        trackID={songSnap.SongID}
-                        backgroundTheme={songSnap.Theme}
-                        caption={songSnap.Caption}
-                        user={profileUser!}
-                        postID={songSnap.PostID}
-                        ownerUserID={songSnap.UserID}
-                        currUserProfilePicture={songSnap.ProfilePicture}
-                    />
-                </div>
-            );
-        });
-    };
+    
 
     return (
         <>
             <NavBar />
             {renderHeader()}
             <Container className='align-items-center d-flex flex-column mt-4'>
-                {isFeedsLoaded ? (
-                    generateFeedSongSnaps(profileUserPosts)
-                ) : (
-                    <p>Loading...</p>
-                )}
+                <Row>
+                    <Col md={12} className='text-center'>
+                        <ProfileTabs personalSongSnaps={profileUserPosts} pinnedSongSnaps={profileUserPinnedPosts}/>
+                    </Col>
+                </Row>
             </Container>
 
         </>
