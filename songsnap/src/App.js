@@ -6,7 +6,10 @@ import Registration from "./views/Registration";
 import Home from "./views/Home";
 import Settings from "./views/Settings";
 import Profile from "./views/Profile";
+import AdminPage from "./views/AdminPage";
+import AdminRoute from "./components/AdminRoute";
 import Cookies from 'js-cookie';
+
 
 function App() {
     //Cookie reading is not working as of now
@@ -19,6 +22,9 @@ function App() {
         <Route path="/home" element={<Home/>}/>
         <Route path="/settings" element={<Settings/>}/>
         <Route path="/profile/:accountID" element={<Profile/>}/>
+        <Route element={<AdminRoute/>}>
+          <Route path="/admin" element={<AdminPage/>}/>
+        </Route>
       </Routes>
     </Router>
   ); 
