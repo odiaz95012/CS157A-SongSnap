@@ -29,8 +29,10 @@ function Login() {
             username: formData.username,
             password: formData.password
         }).then((response) => {
+            console.log(response);
             Cookies.set('userID', response.data.id);
             Cookies.set('username', response.data.username);
+            response.data.isAdmin ? Cookies.set('isAdmin', 'true') :  Cookies.set('isAdmin', 'false');
             navigate('/home');
         }).catch((err) => {
             console.log(err);

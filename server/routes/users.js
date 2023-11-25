@@ -9,8 +9,8 @@ const cron = require('node-cron');
 
 
 const s3 = new AWS.S3({
-  accessKeyId: 'AKIAUADVGEK76UEY3L6U',
-  secretAccessKey: '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',
+  accessKeyId: 'ACCESS_KEY',
+  secretAccessKey: 'SECRET_KEY',
   region: 'us-west-1'
 });
 
@@ -154,7 +154,7 @@ router.post('/login', async (req, res) => {
   const password = req.body.password;
 
   // Fetch hashed password from the database based on the username
-  const query = 'SELECT ID, Password FROM users WHERE Username = ?';
+  const query = 'SELECT ID, Password, Role FROM users WHERE Username = ?';
   connection.query(query, [username], async (err, results) => {
     if (err) {
       console.error('Error executing the query: ' + err);
@@ -170,7 +170,8 @@ router.post('/login', async (req, res) => {
       if (passwordMatch) {
         // Passwords match, user is authenticated
         res.cookie('login', JSON.stringify({ username: username, id: results[0].ID, date: new Date() }), { secure: true, httpOnly: true });
-        return res.json({ message: 'Login successful', username: username, id: results[0].ID, date: new Date() });
+        const isAdminQuery = results[0].Role === 'admin' ? true : false;
+        return res.json({ message: 'Login successful', username: username, id: results[0].ID, date: new Date(), isAdmin: isAdminQuery });
       } else {
         // Passwords don't match, invalid credentials
         res.clearCookie('login');
