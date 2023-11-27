@@ -36,6 +36,7 @@ function Settings() {
     const [userData, setUserData] = useState<User | null>(null);
     const [friendRequests, setFriendRequests] = useState<Friend[]>([]);
     const [userFriends, setUserFriends] = useState<Friend[]>([]);
+    const [userBlocked, setUserBlocked] = useState<Friend[]>([]);
     const [formData, setFormData] = useState<UserForm>({
         id: -1,
         name: '',
@@ -74,6 +75,19 @@ function Settings() {
                 </div>
                 <div className="col-2">
                     <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => unAddFriend(request.User2ID)}><PersonFillDash className='icon' /></button>
+                </div>
+            </div>
+        ));
+    };
+
+    const renderBlockedUsers = () => {
+        return userBlocked.map((user, index) => (
+            <div key={index} className="row bg-light rounded-2 py-2 mb-3">
+                <div className="col-10">
+                    <a href={'user/' + user.User2ID}><h3 className='fw-bold text-black fw-bold mb-0'>{user.name}</h3></a>
+                </div>
+                <div className="col-2">
+                    <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => unAddFriend(user.User2ID)}><PersonFillDash className='icon' /></button>
                 </div>
             </div>
         ));
@@ -179,6 +193,14 @@ function Settings() {
             .catch(error => {
                 console.error("Error fetching user's friends:", error);
             });
+        // Fetch blocked users
+        axios.get('/users/blocked-users/all?id=' + userID)
+            .then(response => {
+                setUserBlocked(response.data);
+            })
+            .catch(error => {
+                console.error("Error fetching blocked users:", error);
+            });
     }
     //const userID = 1;
     useEffect(() => {
@@ -201,7 +223,7 @@ function Settings() {
                         <button className='nav-link' id='friends-tab' data-bs-toggle='tab' data-bs-target='#friends-tab-pane' type='button' role='tab' aria-controls='friends-tab-pane' aria-selected='false'>Friends</button>
                     </li>
                     <li className='nav-item' role='presentation'>
-                        <button className='nav-link' id='disabled-tab' data-bs-toggle='tab' data-bs-target='#disabled-tab-pane' type='button' role='tab' aria-controls='disabled-tab-pane' aria-selected='false' disabled>Disabled</button>
+                        <button className='nav-link' id='blocked-tab' data-bs-toggle='tab' data-bs-target='#blocked-tab-pane' type='button' role='tab' aria-controls='blocked-tab-pane' aria-selected='false'>Blocked</button>
                     </li>
                 </ul>
                 <div className='tab-content' id='myTabContent'>
@@ -273,7 +295,19 @@ function Settings() {
                             </Row>
                         </Container>
                     </div>
-                    <div className='tab-pane fade' id='disabled-tab-pane' role='tabpanel' aria-labelledby='disabled-tab' tabIndex={0}>4</div>
+                    <div className='tab-pane fade' id='blocked-tab-pane' role='tabpanel' aria-labelledby='blocked-tab' tabIndex={0}>
+                        <Container className="bg-light rounded-4 p-3 mt-3">
+                            <Row>
+                                <Col xs="12" lg="6">
+                                    <h1 className="fw-bold">Blocked Users</h1>
+                                </Col>
+                            </Row>
+                        </Container>
+                        <p className='text-center fw-bold mb-4'>All Blocked</p>
+                        <Container>
+                            {renderBlockedUsers()}
+                        </Container>
+                    </div>
                 </div>
             </div>
         </>
