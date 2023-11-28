@@ -538,7 +538,9 @@ const checkDailyStreaks = (callback) => {
     }
     const activeStreaks = result;
 
-    const yesterday = new Date();
+    const moment = require('moment-timezone');
+    const todayPacific = moment().tz('America/Los_Angeles');
+    const yesterday = todayPacific.format('YYYY-MM-DD HH:mm:ss');
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayDate = yesterday.toISOString().split('T')[0];
 
