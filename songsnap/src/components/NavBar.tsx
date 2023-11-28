@@ -5,6 +5,7 @@ import PopUpModal from './PopUpModal';
 import StoryForm from './StoryForm';
 import axios, { AxiosRequestConfig } from 'axios';
 import Cookies from 'js-cookie';
+import UserPromptSubmission from './UserPromptSubmission';
 
 interface StoryInputData {
     songName: string;
@@ -87,7 +88,7 @@ function NavBar() {
                     <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span className="navbar-toggler-icon"></span></button>
                     <div className="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
-                            <div className="d-grid gap-4 d-sm-flex justify-content-sm-center">
+                            <div className="d-grid gap-4 d-sm-flex justify-content-sm-center mx-2 my-2">
                                 <PopUpModal
                                     title='Create a Story'
                                     body={<StoryForm onFormSubmit={handleStoryUpload} />}
@@ -96,9 +97,24 @@ function NavBar() {
                                     functionToExecute={() => postStory(storyData.duration, storyData.caption, storyData.privacy, storyData.songName, storyData.artistName)}
                                 />
                             </div>
-                            <li className="nav-item"><button className="btn btn-primary mx-2">Upload Prompt</button></li>
                             <li className="nav-item mx-2">
-                                <ProfileDropdown id={Cookies.get('userID')!}/>
+                                <div className="d-grid gap-4 d-sm-flex justify-content-sm-center mx-2 my-2">
+                                    <UserPromptSubmission />
+                                </div>
+
+                            </li>
+                            {Cookies.get('isAdmin') === 'true' ? (
+                                <li className="nav-item">
+                                    <div className="d-grid gap-4 d-sm-flex justify-content-sm-center mx-2 my-2">
+                                        <button className="btn btn-primary mx-2" onClick={() => navigate('/admin')}>Admin Page</button>
+                                    </div>
+                                </li>
+                            ) : (null)}
+                            <li className="nav-item mx-2">
+                                <div className="d-grid gap-4 d-sm-flex justify-content-sm-center mx-2 my-2">
+                                    <ProfileDropdown id={Cookies.get('userID')!} />
+                                </div>
+
                             </li>
                         </ul>
                     </div>

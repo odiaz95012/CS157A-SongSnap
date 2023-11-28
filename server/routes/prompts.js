@@ -2,7 +2,6 @@ var express = require('express');
 const cron = require('node-cron');
 var router = express.Router();
 const connection = require('../db');
-const socketIO = require('socket.io');
 
 //get all prompts
 router.get('/', (_, res) => {
@@ -79,18 +78,100 @@ router.get('/all', (req, res) => {
     }
 });
 
-// //get a daily prompt
-// router.get('/prompt-of-the-day', (_, res) => {
-//     const query = "SELECT * FROM prompts ORDER BY RAND() LIMIT 1;"
-//     connection.query(query, (err, results) => {
-//         if (err) {
-//             console.error('Error executing the query: ' + err);
-//             res.status(500).send('Error retrieving data');
-//         } else {
-//             res.json(results);
-//         }
-//     });
-// });
+//post a user prompt submission to the prompt_submissions table
+router.post('/post/userSubmission', (req, res) => {
+    const promptText = req.body.promptText;
+    const theme = req.body.theme;
+    const userID = req.body.userID;
+
+    if (promptText && theme && userID) {
+        const query = `
+        INSERT INTO prompt_submissions (UserID, PromptText, Theme, DateCreated)
+        VALUES (?, ?, ?, ?)`;
+        const values = [userID, promptText, theme, new Date()];
+
+        connection.query(query, values, (err, results) => {
+            if (err) {
+                console.error('Error executing the query: ' + err);
+                res.status(500).send('Error inserting the prompt submission data');
+            } else {
+                // Check if the insertion was successful
+                if (results.affectedRows === 1) {
+                    // Insertion successful, set the cookie with the user's data
+                    res.json({ message: 'Prompt submission successful' });
+                } else {
+                    // Insertion failed
+                    res.status(500).json({ message: 'Failed to insert the prompt' });
+                }
+            }
+        });
+    } else {
+        res.status(400).send('The prompt text, theme, or user ID was not provided.');
+    }
+})
+
+//get all user prompt submissions that are not already in the daily prompts rotation
+router.get('/all/userSubmissions', (_, res) => {
+
+    const query = `
+    SELECT ps.*, users.Username 
+    FROM prompt_submissions ps
+    JOIN users ON ps.UserID = users.ID
+    LEFT JOIN prompts p ON ps.PromptText = p.PromptText
+    WHERE p.PromptText IS NULL`;
+
+    connection.query(query, (err, results) => {
+        if (err) {
+            console.error('Error executing the query: ' + err);
+            res.status(500).send('Error retrieving all of the user prompt submissions.');
+        } else {
+            res.json(results);
+        }
+    });
+});
+
+
+//add user prompt submission to daily prompts rotation
+router.post('/add', (req, res) => {
+    const promptID = req.body.promptID;
+    if(promptID) {
+        const query = `
+        SELECT * FROM prompt_submissions WHERE PromptID = ?`;
+        connection.query(query, [promptID], (err, results) => {
+            if (err) {
+                console.error('Error executing the query: ' + err);
+                res.status(500).send('Error adding user prompt submission to daily prompts rotation.');
+            } else {
+                const promptDetails = results[0];
+                const insertPromptQuery = `INSERT INTO prompts (PromptText, Theme) VALUES (?, ?)`;
+                const insertPromptValues = [promptDetails.PromptText, promptDetails.Theme];
+                connection.query(insertPromptQuery, insertPromptValues, (err, results) => {
+                    if (err) {
+                        console.error('Error executing the query: ' + err);
+                        res.status(500).send('Error adding user prompt submission to daily prompts rotation.');
+                    } else {
+                        // Check if the insertion was successful
+                        if (results.affectedRows === 1) {
+                            const promptData = {
+                                PromptID: promptID,
+                                PromptText: promptDetails.PromptText,
+                                Theme: promptDetails.Theme
+                            };
+                            res.json({ message: 'Prompt submission successful',  promptData: promptData});
+                        } else {
+                            // Insertion failed
+                            res.status(500).json({ message: 'Failed to insert the prompt' });
+                        }
+                    }
+                });
+            }
+        });
+
+
+    }else {
+        res.status(400).send('The prompt ID of the user prompt submission was not provided.');
+    }
+});
 
 //get a random prompt from the db
 const getRandomPrompt = (callback) => {
@@ -119,7 +200,7 @@ const getRandomPrompt = (callback) => {
 };
 
 // Route to get the prompt of the day
-router.get('/prompt-of-the-day', (req, res) => {
+router.get('/prompt-of-the-day', (_, res) => {
     getRandomPrompt((err, prompt) => {
         if (err || !prompt) {
             res.status(500).json({ error: 'Failed to fetch prompt of the day' });
