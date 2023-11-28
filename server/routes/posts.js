@@ -149,10 +149,15 @@ router.post('/create/story', (req, res) => {
 
 //Retrieve all songs snaps from the db for the main feed
 router.get('/get/songSnaps', (_, res) => {
-  const query = `SELECT ss.*, u.Username, u.name, u.ProfilePicture
-                FROM songsnaps ss, users u
-                WHERE ss.UserID = u.ID
-                ORDER BY ss.Date DESC;`;
+  const query = `
+    SELECT ss.*, u.Username, u.name, u.ProfilePicture
+    FROM songsnaps ss
+    INNER JOIN users u ON ss.UserID = u.ID
+    WHERE ss.UserID NOT IN (
+        SELECT User2ID FROM blocked WHERE User1ID = ss.UserID
+    )
+    ORDER BY ss.Date DESC;
+  `;
   connection.query(query, (err, results) => {
     if (err) {
       console.log("Error executing the query:" + err);
