@@ -77,7 +77,11 @@ router.post('/create/songSnap', (req, res) => {
                   // User has prior existing inactive streaks, create a new streak with a new Streak ID
                   const newStreakID = inactiveResults[0].StreakID + 1;
                   const insertNewStreakQuery = "INSERT INTO streaks (UserID, StreakID, StartDate, Length) VALUES (?, ?, ?, ?)";
-                  const startDate = new Date(); // Use the current date as the start date
+
+                  const moment = require('moment-timezone');
+                  const todayPacific = moment().tz('America/Los_Angeles');
+                  const startDate = todayPacific.format('YYYY-MM-DD HH:mm:ss');
+
                   connection.query(insertNewStreakQuery, [userID, newStreakID, startDate, 1], (err) => {
                     if (err) {
                       console.log("Error executing the query:" + err);
@@ -89,7 +93,11 @@ router.post('/create/songSnap', (req, res) => {
                 } else {
                   // User has no prior existing inactive streaks, create a new streak with Streak ID 1
                   const insertStreakQuery = "INSERT INTO streaks (UserID, StreakID, StartDate, Length) VALUES (?, ?, ?, ?)";
-                  const startDate = new Date(); // Use the current date as the start date
+
+                  const moment = require('moment-timezone');
+                  const todayPacific = moment().tz('America/Los_Angeles');
+                  const startDate = todayPacific.format('YYYY-MM-DD HH:mm:ss');
+
                   const streakID = 1; // Initial streak ID
                   connection.query(insertStreakQuery, [userID, streakID, startDate, 1], (err) => {
                     if (err) {
@@ -228,7 +236,7 @@ router.get('/get/personalStories', (req, res) => {
 router.get('/get/userSongSnaps', (req, res) => {
   const userID = req.query.userID;
 
-  const query =`
+  const query = `
           SELECT ss.*, u.Username, u.name, u.ProfilePicture
           FROM songsnaps ss
           JOIN users u ON ss.UserID = u.ID  
