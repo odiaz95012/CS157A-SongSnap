@@ -84,7 +84,7 @@ function Settings() {
         return userBlocked.map((user, index) => (
             <div key={index} className="row bg-light rounded-2 py-2 mb-3">
                 <div className="col-10">
-                    <a href={'user/' + user.User2ID}><h3 className='fw-bold text-black fw-bold mb-0'>{user.name}</h3></a>
+                    <a href={'profile/' + user.User2ID}><h3 className='fw-bold text-black fw-bold mb-0'>{user.name}</h3></a>
                 </div>
                 <div className="col-2">
                     <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => unAddFriend(user.User2ID)}><PersonFillDash className='icon' /></button>
