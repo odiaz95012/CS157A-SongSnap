@@ -228,37 +228,52 @@ interface User {
 }
 interface StoriesContainerProps {
   userDetails: User;
+  context: string;
 }
 
-const StoriesContainer: React.FC<StoriesContainerProps> = ({ userDetails }: StoriesContainerProps) => {
-  const [activeStories, setActiveStories] = useState<Story[]>([]);
+const StoriesContainer: React.FC<StoriesContainerProps> = ({ userDetails, context }: StoriesContainerProps) => {
+  const [stories, setStories] = useState<Story[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
 
   useEffect(() => {
-    const fetchActiveStories = async () => {
+    const fetchData = async () => {
       try {
         const userID = await getCookie('userID');
-        const response = await axios.get<Story[]>('/posts/get/activeStories', {
-          params: {
-            userID: userID
-          }
-        });
+        let endpoint = '';
 
-        const storiesWithProfilePictures = await Promise.all(response.data.map(async (story) => {
-          const userResponse = await axios.get<User>(`/users/id?id=${story.UserID}`);
-          const storyWithProfilePicture = { ...story, profilePicture: userResponse.data.ProfilePicture };
-          return storyWithProfilePicture;
-        }));
+        if (context === 'home') {
+          endpoint = '/posts/get/activeStories';
+        } else if (context === 'profile') {
+          endpoint = '/posts/get/personalStories';
+        }
 
-        setActiveStories(storiesWithProfilePictures);
+        if (endpoint) {
+          const response = await axios.get<Story[]>(endpoint, {
+            params: {
+              userID: userID,
+            },
+          });
+
+          const storiesWithProfilePictures = await Promise.all(
+            response.data.map(async (story) => {
+              const userResponse = await axios.get<User>(`/users/id?id=${story.UserID}`);
+              const storyWithProfilePicture = { ...story, profilePicture: userResponse.data.ProfilePicture };
+              return storyWithProfilePicture;
+            })
+          );
+
+          setStories(storiesWithProfilePictures);
+
+        }
       } catch (error) {
-        console.error('Error fetching active stories:', error);
+        console.error(`Error fetching ${context === 'home' ? 'active' : 'personal'} stories:`, error);
       }
     };
 
-    fetchActiveStories();
-  }, []);
+    fetchData();
+  }, [context]);
+
 
   const getCookie = (name: string) => {
     return Cookies.get(name);
@@ -278,14 +293,14 @@ const StoriesContainer: React.FC<StoriesContainerProps> = ({ userDetails }: Stor
   return (
     <div className="container mt-3">
       <div className="d-flex justify-content-start">
-        <h3>Stories</h3>
+        <h3>{context === 'home' ? 'Stories' : 'My Stories'}</h3>
       </div>
       <div className="scrolling-container d-flex justify-content-center">
-        {activeStories.length === 0 ? (
+        {stories.length === 0 ? (
           <div className="no-stories-message">No stories yet :(</div>
         ) : (
           <div className="scrolling-container d-flex justify-content-center">
-            {activeStories.map((story) => (
+            {stories.map((story) => (
               <div
                 className="scrolling-content"
                 key={story.PostID}

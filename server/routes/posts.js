@@ -186,7 +186,7 @@ router.get('/get/friendSongSnaps', (req, res) => {
 
 });
 
-//Retrieve all active stories from the db
+//Retrieve all active stories from the db that are visible to user
 router.get('/get/activeStories', (req, res) => {
   const userID = req.query.userID;
 
@@ -200,7 +200,24 @@ router.get('/get/activeStories', (req, res) => {
   connection.query(query, [userID, userID], (err, results) => {
     if (err) {
       console.log("Error executing the query:" + err);
-      res.status(500).send("Error retrieving stories");
+      res.status(500).send("Error retrieving active stories visible to user");
+    } else {
+      res.status(200).json(results);
+    }
+  });
+});
+//Retrieve all personal stories from the db
+router.get('/get/personalStories', (req, res) => {
+  const userID = req.query.userID;
+
+  const query = `
+    SELECT * FROM stories s
+    WHERE UserID = ?`;
+
+  connection.query(query, [userID], (err, results) => {
+    if (err) {
+      console.log("Error executing the query:" + err);
+      res.status(500).send("Error retrieving personal stories");
     } else {
       res.status(200).json(results);
     }

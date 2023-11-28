@@ -24,6 +24,7 @@ interface StoryInputData {
   privacy: string;
 }
 
+
 function PopUpModal({ title, body, submitButtonText, openButtonText, functionToExecute, onFormSubmit }: ModalProps) {
   const [show, setShow] = useState<boolean>(false);
 
