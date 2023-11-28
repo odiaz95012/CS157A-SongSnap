@@ -9,6 +9,7 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import { PersonCheckFill, Fire } from "react-bootstrap-icons";
 import ProfileTabs from '../components/ProfileTabs';
+import StoriesContainer from '../components/StoryContainer';
 
 
 interface User {
@@ -79,14 +80,14 @@ function Profile() {
             .catch(error => {
                 console.error("Error fetching user data:", error);
             });
-        
+
         axios.get('/posts/get/favorites/?userID=' + userID)
             .then(response => {
                 setProfileUserPinnedPosts(response.data);
             })
             .catch(error => {
                 console.error("Error fetching user's pinned posts:", error);
-            });    
+            });
 
         axios.get('/users/id?id=' + accountID)
             .then(response => {
@@ -188,18 +189,22 @@ function Profile() {
     };
 
 
-    
+
 
     return (
         <>
             <NavBar />
             {renderHeader()}
+            {profileUser !== null && (
+                <StoriesContainer userDetails={profileUser} context={'profile'} />
+            )}
             <Container className='align-items-center d-flex flex-column mt-4'>
                 <Row>
                     <Col md={12} className='text-center'>
-                        <ProfileTabs personalSongSnaps={profileUserPosts} pinnedSongSnaps={profileUserPinnedPosts}/>
+                        <ProfileTabs personalSongSnaps={profileUserPosts} pinnedSongSnaps={profileUserPinnedPosts} />
                     </Col>
                 </Row>
+
             </Container>
 
         </>

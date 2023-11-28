@@ -292,7 +292,7 @@ function Home() {
                 </div>
             </header>
             {/* Stories Container */}
-            <StoriesContainer userDetails={currUserDetails} />
+            <StoriesContainer userDetails={currUserDetails} context={'home'}/>
 
             {/* Feed Container */}
             <div className="d-flex-1 text-center justify-content-center align-items-center mt-3">
