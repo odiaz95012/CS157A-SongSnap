@@ -87,7 +87,7 @@ function Settings() {
                     <a href={'profile/' + user.User2ID}><h3 className='fw-bold text-black fw-bold mb-0'>{user.name}</h3></a>
                 </div>
                 <div className="col-2">
-                    <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => unAddFriend(user.User2ID)}><PersonFillDash className='icon' /></button>
+                    <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => unBlockUser(user.User2ID)}><PersonFillDash className='icon' /></button>
                 </div>
             </div>
         ));
@@ -149,11 +149,33 @@ function Settings() {
             axios.post('users/friends/remove', requestData)
                 .then(response => {
                     console.log("Response submitted");
-                    // You might want to update the state or do something else upon success
                 })
                 .catch(error => {
                     console.error("Error responding to friend request:", error);
-                    // Handle errors accordingly
+                })
+                .finally(() => {
+                    fetchUserData();
+                });
+        } else {
+            console.error('userData is null');
+        }
+    };
+
+    const unBlockUser = (ID:number) => {
+        if (userData) {
+            const user1ID = userData.ID;
+
+            const requestData = {
+                user1id: user1ID,
+                user2id: ID,
+            };
+
+            axios.post('users/blocked-users/remove', requestData)
+                .then(response => {
+                    console.log("Response submitted");
+                })
+                .catch(error => {
+                    console.error("Error responding to friend request:", error);
                 })
                 .finally(() => {
                     fetchUserData();
