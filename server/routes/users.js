@@ -518,7 +518,7 @@ router.get('/activeStreak', (req, res) => {
   connection.query(query, (err, results) => {
     if (err) {
       console.log("Error executing the query:" + err);
-      res.status(500).send("Error checking streak information.");
+      res.status(500).send("Error checking active streak");
     } else {
       res.status(200).json(results);
       
@@ -526,6 +526,44 @@ router.get('/activeStreak', (req, res) => {
   });
 
 });
+
+router.get('/longestStreak', (req, res) => {
+  const id = req.query.id;
+
+  const query = `
+    SELECT * 
+    FROM streaks 
+    WHERE UserID = ${id} 
+    ORDER BY Length DESC
+    LIMIT 1
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.log("Error executing the query:" + err);
+      res.status(500).send("Error checking longest streak");
+    } else {
+      res.status(200).json(results);
+    }
+  });
+});
+
+router.get('/personalStreaks', (req, res) => {
+  const id = req.query.id;
+
+  const query = `SELECT * FROM streaks WHERE UserID = ${id} ORDER BY StreakID DESC`;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.log("Error executing the query:" + err);
+      res.status(500).send("Error checking personal streaks");
+    } else {
+      res.status(200).json(results);
+    }
+  });
+});
+
+
 
 
 
