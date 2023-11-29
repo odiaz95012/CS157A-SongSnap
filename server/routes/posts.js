@@ -260,6 +260,26 @@ router.get('/get/userSongSnaps', (req, res) => {
   });
 });
 
+//get a user's public song snaps
+router.get('/get/userPublicSongSnaps', (req, res) => {
+  const userID = req.query.userID;
+
+  const query = `
+          SELECT ss.*, u.Username, u.name, u.ProfilePicture
+          FROM songsnaps ss
+          JOIN users u ON ss.UserID = u.ID  
+          WHERE ss.UserID = ? AND ss.Visibility = 'public'
+          ORDER BY Date DESC`;
+  connection.query(query, [userID], (err, results) => {
+    if (err) {
+      console.log("Error executing the query:" + err);
+      res.status(500).send("Error retrieving song snaps");
+    } else {
+      res.status(200).json(results);
+    }
+  });
+});
+
 //Like a post
 router.post('/like', (req, res) => {
   const likeData = req.body;
