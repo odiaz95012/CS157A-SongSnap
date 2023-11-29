@@ -155,18 +155,20 @@ router.post('/create/story', (req, res) => {
 });
 
 
-//Retrieve all songs snaps from the db for the main feed
-router.get('/get/songSnaps', (_, res) => {
+//Retrieve all songs snaps from the db for the main feed with filtered out blocked users posts
+router.get('/get/songSnaps', (req, res) => {
+  const userID = req.query.userID;
   const query = `
     SELECT ss.*, u.Username, u.name, u.ProfilePicture
     FROM songsnaps ss
     INNER JOIN users u ON ss.UserID = u.ID
     WHERE ss.UserID NOT IN (
-        SELECT User2ID FROM blocked WHERE User1ID = ss.UserID
+        SELECT User2ID FROM blocked WHERE User1ID = ?
     )
     ORDER BY ss.Date DESC;
   `;
-  connection.query(query, (err, results) => {
+  
+  connection.query(query, [userID], (err, results) => {
     if (err) {
       console.log("Error executing the query:" + err);
       res.status(500).send("Error retrieving song snaps");
@@ -175,6 +177,7 @@ router.get('/get/songSnaps', (_, res) => {
     }
   });
 });
+
 
 router.get('/get/friendSongSnaps', (req, res) => {
   const userID = req.query.userID;
@@ -431,12 +434,12 @@ router.post('/unfavorite', (req, res) => {
 router.get('/get/favorites', (req, res) => {
   const userID = req.query.userID;
   const query = `
-    SELECT ss.*, u.Username, u.name, u.ProfilePicture
-    FROM songsnaps ss
-    INNER JOIN pinned p ON ss.PostID = p.SongSnapID
-    INNER JOIN users u ON ss.UserID = u.ID
-    WHERE p.UserID = ?
-    ORDER BY ss.Date DESC;
+  SELECT ss.*, u.Username, u.name, u.ProfilePicture
+  FROM songsnaps ss
+  INNER JOIN pinned p ON ss.PostID = p.SongSnapID
+  INNER JOIN users u ON ss.UserID = u.ID
+  WHERE p.UserID = ?
+  ORDER BY ss.Date DESC;
   `;
   connection.query(query, [userID], (err, results) => {
     if (err) {
