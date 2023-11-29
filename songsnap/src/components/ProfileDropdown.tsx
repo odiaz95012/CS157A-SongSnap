@@ -11,6 +11,7 @@ function ProfileDropdown({ id }: { id: string }) {
       <Dropdown.Menu>
         <Dropdown.Item href={"/profile/" + id}>View Profile</Dropdown.Item>
         <Dropdown.Item href="/settings">Settings</Dropdown.Item>
+        <Dropdown.Item href="/friends">Friends</Dropdown.Item>
         <Dropdown.Item href="#/action-2">
           <LogOutModal />
         </Dropdown.Item>
