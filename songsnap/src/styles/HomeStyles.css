@@ -47,6 +47,14 @@
     border-radius: 15px;
 }
 
+.streak-card {
+    background-color: rgba(23, 44, 127, 0.2);
+}
+
+.longest-streak-card {
+    background-color:rgba(206, 32, 41, 0.7)
+}
+
 .player-container {
     margin-bottom: 150px;
 }

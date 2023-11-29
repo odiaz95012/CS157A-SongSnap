@@ -10,6 +10,7 @@ import Col from "react-bootstrap/Col";
 import { PersonCheckFill, Fire } from "react-bootstrap-icons";
 import ProfileTabs from '../components/ProfileTabs';
 import StoriesContainer from '../components/StoryContainer';
+import StreaksContainer from '../components/StreaksContainer';
 
 
 interface User {
@@ -177,6 +178,9 @@ function Profile() {
                             </>
                         ) : (
                             <h1 className='fw-bold text-center'>Streak: 0</h1>
+                        )}
+                        {profileUser !== null && (
+                                    <StreaksContainer userDetails={profileUser} />
                         )}
                     </Col>
 
