@@ -147,7 +147,7 @@ function ProfileTabs({ personalSongSnaps, pinnedSongSnaps, viewerAccountID }: Pr
                     className="mb-3"
                     fill
                 >
-                    <Tab eventKey="userSongSnaps" title="User's SongSnaps" active>
+                    <Tab eventKey="userSongSnaps" title={userProfileSongSnaps.length > 0 ? `${userProfileSongSnaps[0].Username}'s SongSnaps`: 'User SongSnaps'} active>
                         {userProfileTabContent}
                     </Tab>
                 </Tabs>
