@@ -6,6 +6,7 @@ const upload = multer();
 const bcrypt = require('bcryptjs');
 const AWS = require('aws-sdk');
 const cron = require('node-cron');
+const { route } = require('./posts');
 
 
 const s3 = new AWS.S3({
@@ -25,10 +26,11 @@ router.post('/upload-profile-picture', upload.single('profilePicture'), (req, re
   }
 
   const fileExtension = profilePic.originalname.split('.').pop(); // Get file extension
+  const uniqueFilename = `${username}_${Date.now()}.${fileExtension}`; // Unique filename
 
   const params = {
     Bucket: 'songsnap-profile-pictures',
-    Key: `${username}.${fileExtension}`, // Use a dynamic key based on user ID and file extension
+    Key: uniqueFilename, // Use a unique filename
     Body: profilePic.buffer,
     ContentType: profilePic.mimetype
   };
@@ -40,6 +42,25 @@ router.post('/upload-profile-picture', upload.single('profilePicture'), (req, re
     } else {
       console.log('Image uploaded successfully:', data.Location);
       res.status(200).json({ imageUrl: data.Location });
+    }
+  });
+});
+
+router.patch('/update-profile-picture', (req, res) => {
+  const userID = req.body.userID;
+  const imageUrl = req.body.imageUrl;
+
+  if (!userID || !imageUrl) {
+    return res.status(400).json({ error: 'Missing data' });
+  }
+
+  const query = "UPDATE users SET ProfilePicture = ? WHERE ID = ?";
+  connection.query(query, [imageUrl, userID], (err) => {
+    if (err) {
+      console.error('Error executing the query:', err);
+      res.status(500).json({ error: 'Error updating profile picture' });
+    } else {
+      res.status(200).json({ message: 'Profile picture updated' });
     }
   });
 });
@@ -66,9 +87,9 @@ router.get('/id', (req, res) => {
   }
 
 
-  const query = `SELECT ID, name, Email, ProfilePicture, Username FROM users WHERE ID = ${id}`;
+  const query = `SELECT ID, name, Email, ProfilePicture, Username FROM users WHERE ID = ?`;
 
-  connection.query(query, (err, results) => {
+  connection.query(query, [id], (err, results) => {
     if (err) {
       console.error('Error executing the query: ' + err);
       res.status(500).send('Error retrieving data');
@@ -414,7 +435,7 @@ router.get('/friends/all', (req, res) => {
       WHERE (friends.User1ID = ? OR friends.User2ID = ?)
       AND friends.Status = 'Accepted'
       AND friends.User2ID = users.id
-      AND users.id != ?
+      AND users.id <> ?
     `;
     connection.query(query, [id, id, id], (err, results) => {
       if (err) {
@@ -424,7 +445,7 @@ router.get('/friends/all', (req, res) => {
         if (results.length > 0) {
           return res.status(200).json(results);
         } else {
-          return res.status(404).json({ message: 'No friends on songsnap!' });
+          return res.status(200).json({ message: 'No friends on songsnap!' });
         }
       }
     });
@@ -451,7 +472,7 @@ router.get('/blocked-users/all', (req, res) => {
         if (results.length > 0) {
           return res.status(200).json(results);
         } else {
-          return res.status(404).json({ message: 'No blocked users' });
+          return res.status(200).json({ message: 'No blocked users' });
         }
       }
     });
