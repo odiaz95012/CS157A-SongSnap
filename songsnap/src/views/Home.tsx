@@ -146,7 +146,8 @@ function Home() {
 
     const getMainFeedSongSnaps = async () => {
         try {
-            const response = await axios.get('/posts/get/songSnaps')
+            const userID = await getCookie('userID');
+            const response = await axios.get('/posts/get/songSnaps/?userID=' + userID)
             return response.data;
         } catch (err) {
             console.log(err);
