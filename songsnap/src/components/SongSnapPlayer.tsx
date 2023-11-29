@@ -5,10 +5,12 @@ import '../styles/SongSnapPlayerStyles.css';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import CommentsContainer from './CommentsContainer';
+import { useNavigate } from 'react-router-dom';
 interface User {
   Username: string;
   name: string;
   ProfilePicture: string;
+  ID: number;
 }
 interface DzPlayerProps {
   dztype: string;
@@ -34,7 +36,7 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
     UserID: number;
     ProfilePicture: string;
   }
-
+  const navigate = useNavigate();
   const [iframeLoaded, setIframeLoaded] = useState<boolean>(false);
   const [isLiked, setIsLiked] = useState<boolean>(false);
   const [isFavorited, setIsFavorited] = useState<boolean>(false);
@@ -143,6 +145,10 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
     setIsFavorited(!isFavorited);
   };
 
+  const navigateToProfile = (profileID: number) => {
+    navigate(`/profile/${profileID}`);
+  };
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -190,6 +196,7 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
                       src={user.ProfilePicture}
                       alt="Profile Picture"
                       className='profile-picture'
+                      onClick={() => navigateToProfile(user.ID)}
                       roundedCircle
                     />
                   </div>

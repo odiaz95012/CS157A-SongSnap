@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import RegistrationForm from '../components/RegistrationForm';
 import NavBar from "../components/NavBar";
-import { Badge, Container } from 'react-bootstrap'
+import { Badge, Container, Image } from 'react-bootstrap'
 import axios from 'axios';
 import { useParams } from "react-router-dom";
 import Cookies from 'js-cookie';
@@ -62,11 +62,12 @@ function Profile() {
     const [profileUserPosts, setProfileUserPosts] = useState<SongSnap[]>([]);
     const [profileUserPinnedPosts, setProfileUserPinnedPosts] = useState<SongSnap[]>([]);
     const [profileUserStreak, setProfileUserStreak] = useState<Streak | null>(null);
+
+
     const fetchUserData = async () => {
         // get user id from cookie
-        const userID = await Cookies.get("userID");
         // Fetch user data
-        axios.get('/users/id?id=' + userID)
+        axios.get('/users/id?id=' + accountID)
             .then(response => {
                 setLoggedInUser(response.data);
             })
@@ -82,7 +83,7 @@ function Profile() {
                 console.error("Error fetching user data:", error);
             });
 
-        axios.get('/posts/get/favorites/?userID=' + userID)
+        axios.get('/posts/get/favorites/?userID=' + accountID)
             .then(response => {
                 setProfileUserPinnedPosts(response.data);
             })
@@ -106,7 +107,7 @@ function Profile() {
             .catch(error => {
                 console.error("Error fetching user data:", error);
             });
-        axios.get('/users/activeStreak?id=' + userID)
+        axios.get('/users/activeStreak?id=' + accountID)
             .then(response => {
                 setProfileUserStreak(response.data[0]);
             })
@@ -120,7 +121,19 @@ function Profile() {
             await fetchUserData();
         }
         fetchData();
+        console.log('Logged in User ID: ' + loggedInUser?.ID);
+        console.log('account ID: ' + accountID);
     }, []);
+
+    const getPublicSongSnaps = async () => {
+        axios.get('/posts/get/userPublicSongSnaps/?userID=' + accountID)
+            .then(response => {
+                console.log(response.data);
+            })
+            .catch(error => {
+                console.error("Error fetching user public song snaps:", error);
+            });
+    };
 
     const renderHeader = () => {
         const profileButton = () => {
@@ -160,35 +173,65 @@ function Profile() {
                 <Row>
                     <Col sm={6} md={3}>
                         <h1 className='fw-bold'>{profileUser.name}</h1>
-                        <p className='text-secondary'>{profileUser.Username} {profileUser.ID === loggedInUser?.ID ? <Badge color="primary">You</Badge> : ''}</p>
+                        <p className='text-secondary'>{profileUser.Username} {accountID === Cookies.get('userID') ? <Badge color="primary">You</Badge> : ''}</p>
                     </Col>
                     <Col sm={6} md={3}>
                         <h1 className='fw-bold text-center'>{profileUserFriends.length} Friends</h1>
                         <h1 className='fw-bold text-center'>{profileUserPosts.length} Posts</h1>
                     </Col>
                     <Col sm={6} md={3} className='text-end'>
-                        {profileUserStreak ? (
+                        {accountID === Cookies.get('userID') ? (
                             <>
-                                {profileUserStreak.Length !== undefined && (
-                                    <h1 className='fw-bold text-center'><Fire className='mb-2' style={{ color: 'rgb(255, 119, 0)' }} />Streak: {profileUserStreak.Length}</h1>
+                                {profileUserStreak ? (
+                                    <>
+                                        {profileUserStreak.Length !== undefined && (
+                                            <h1 className='fw-bold text-center'>
+                                                <Fire className='mb-2' style={{ color: 'rgb(255, 119, 0)' }} />Streak: {profileUserStreak.Length}
+                                            </h1>
+                                        )}
+                                        {profileUserStreak.StartDate && (
+                                            <h5 className='text-center'>Since {profileUserStreak.StartDate.substring(0, 10)}</h5>
+                                        )}
+                                    </>
+                                ) : (
+                                    <h1 className='fw-bold text-center'>Streak: 0</h1>
                                 )}
-                                {profileUserStreak.StartDate && (
-                                    <h5 className='text-center'>Since {profileUserStreak.StartDate.substring(0, 10)}</h5>
+                                {profileUser !== null && (
+                                    <StreaksContainer userDetails={profileUser} />
                                 )}
                             </>
                         ) : (
-                            <h1 className='fw-bold text-center'>Streak: 0</h1>
-                        )}
-                        {profileUser !== null && (
-                                    <StreaksContainer userDetails={profileUser} />
+                            <Image
+                                src={profileUser.ProfilePicture}
+                                className='profile-picture'
+                                thumbnail
+                                style={{ height: '150px', width: '150px' }}
+                            />
                         )}
                     </Col>
-
                     <Col sm={12} md={3} className='text-end'>
                         {profileButton()}
                     </Col>
                 </Row>
-            </Container>
+                <>
+                    {/*Display profile picture in a new row for when a user views their own profile*/}
+                    {accountID === Cookies.get('userID') ? (
+                        <Row>
+                            <Col sm={12} md={12}>
+                                <Image
+                                    src={loggedInUser?.ProfilePicture}
+                                    className='profile-picture'
+                                    thumbnail
+                                    style={{ height: '150px', width: '150px' }}
+                                />
+                            </Col>
+                        </Row>
+
+                    ) : (null)
+
+                    }
+                </>
+            </Container >
         );
     };
 
@@ -199,13 +242,14 @@ function Profile() {
         <>
             <NavBar />
             {renderHeader()}
-            {profileUser !== null && (
+            {profileUser !== null && accountID === Cookies.get('userID') && (
                 <StoriesContainer userDetails={profileUser} context={'profile'} />
             )}
+
             <Container className='align-items-center d-flex flex-column mt-4'>
                 <Row>
                     <Col md={12} className='text-center'>
-                        <ProfileTabs personalSongSnaps={profileUserPosts} pinnedSongSnaps={profileUserPinnedPosts} />
+                        <ProfileTabs personalSongSnaps={profileUserPosts} pinnedSongSnaps={profileUserPinnedPosts} viewerAccountID={accountID!} />
                     </Col>
                 </Row>
 

@@ -5,6 +5,7 @@ import { Row, Col, Button, Image } from 'react-bootstrap';
 import { Heart, HeartFill } from 'react-bootstrap-icons';
 import '../styles/StoryStyles.css';
 import Cookies from 'js-cookie';
+import { useNavigate } from 'react-router-dom';
 
 interface Story {
   PostID: number;
@@ -140,6 +141,12 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
     }
   };
 
+  const navigate = useNavigate();
+
+  const navigateToProfile = (profileID: number) => {
+    navigate(`/profile/${profileID}`);
+  };
+
 
 
   return (
@@ -152,6 +159,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
               alt="Profile Picture"
               className='profile-picture'
               roundedCircle
+              onClick={() => navigateToProfile(story.UserID)}
             />
             {" " + userData}
           </Modal.Title>
@@ -289,6 +297,8 @@ const StoriesContainer: React.FC<StoriesContainerProps> = ({ userDetails, contex
     setShowModal(false);
   };
 
+  
+
 
   return (
     <div className="container mt-3">
@@ -297,7 +307,7 @@ const StoriesContainer: React.FC<StoriesContainerProps> = ({ userDetails, contex
       </div>
       <div className="scrolling-container d-flex justify-content-center">
         {stories.length === 0 ? (
-          <div className="no-stories-message">No stories yet :(</div>
+          <div className="no-stories-message lead mt-2">No stories yet :(</div>
         ) : (
           <div className="scrolling-container d-flex justify-content-center">
             {stories.map((story) => (
