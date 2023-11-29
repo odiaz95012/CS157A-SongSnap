@@ -424,8 +424,10 @@ router.get('/get/favorites', (req, res) => {
   const userID = req.query.userID;
   const query = `
     SELECT ss.*, u.Username, u.name, u.ProfilePicture
-    FROM songsnaps ss, pinned p, users u
-    WHERE ss.PostID = p.SongSnapID AND p.UserID = u.ID AND p.UserID = ?
+    FROM songsnaps ss
+    INNER JOIN pinned p ON ss.PostID = p.SongSnapID
+    INNER JOIN users u ON ss.UserID = u.ID
+    WHERE p.UserID = ?
     ORDER BY ss.Date DESC;
   `;
   connection.query(query, [userID], (err, results) => {
