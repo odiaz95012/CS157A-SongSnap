@@ -6,6 +6,7 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import axios from 'axios';
 import { PersonCheckFill, PersonFillDash } from 'react-bootstrap-icons';
+import SelectUserModal from "../components/SelectUserModal";
 
 interface Friend {
     User1ID: number;
@@ -161,6 +162,19 @@ function Settings() {
         }
     };
 
+    const blockUser = (ID: number) => {
+        axios.post('/users/blocked-users/create', {user1: parseInt(getCookie('userID')!), user2: ID})
+            .then(response => {
+                console.log("Response submitted: " + response);
+                setStatusMessage("Success. User has been blocked on this account.");
+            })
+            .catch(error => {
+                console.error("Error responding to friend request:", error);
+                setStatusMessage("OOOOOPS! There was an error");
+            });
+    };
+
+
     const handleProfilePictureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files.length > 0) {
             const file = event.target.files[0];
@@ -253,6 +267,11 @@ function Settings() {
             <NavBar />
             <div className='container mt-3'>
                 <h1 className='fw-bold text-center'>Account Settings</h1>
+                {statusMessage && (
+                    <div className={`alert ${statusMessage.includes('Error') ? 'alert-danger' : 'alert-success'} mt-3 alert-dismissible`} role='alert'>
+                        {statusMessage}
+                    </div>
+                )}
                 <ul className='nav nav-pills nav-justified mt-4' id='myTab' role='tablist'>
                     <li className='nav-item' role='presentation'>
                         <button className='nav-link active' id='home-tab' data-bs-toggle='tab' data-bs-target='#home-tab-pane' type='button' role='tab' aria-controls='home-tab-pane' aria-selected='true'>Home</button>
@@ -271,11 +290,6 @@ function Settings() {
                                 <Image src={userData?.ProfilePicture} thumbnail/>
                             </div>
                             <div className='col-12 col-lg-8'>
-                                {statusMessage && (
-                                    <div className={`alert ${statusMessage.includes('Error') ? 'alert-danger' : 'alert-success'} mt-3 alert-dismissible`} role='alert'>
-                                        {statusMessage}
-                                    </div>
-                                )}
                                 <div className="mb-3">
                                     <label htmlFor="formFile" className="form-label">Upload profile photo</label>
                                     <input className="form-control" type="file" id="formFile" onChange={handleProfilePictureChange} />
@@ -317,6 +331,12 @@ function Settings() {
                         <p className='text-center fw-bold mb-4'>All Blocked</p>
                         <Container>
                             {renderBlockedUsers()}
+                            <SelectUserModal
+                                openModalBttnText={"Block User"}
+                                functionToExecute={blockUser}
+                                submitBttnText={"Block"}
+                                titleText={"Choose a user to block"}
+                            />
                         </Container>
                     </div>
                 </div>

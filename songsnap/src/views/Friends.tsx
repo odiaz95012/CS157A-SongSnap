@@ -6,6 +6,7 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import axios from 'axios';
 import { PersonCheckFill, PersonFillDash } from 'react-bootstrap-icons';
+import SelectUserModal from '../components/SelectUserModal';
 
 interface Friend {
     User1ID: number;
@@ -36,6 +37,9 @@ function Friends() {
     const [userData, setUserData] = useState<User | null>(null);
     const [friendRequests, setFriendRequests] = useState<Friend[]>([]);
     const [userFriends, setUserFriends] = useState<Friend[]>([]);
+    const [statusMessage, setStatusMessage] = useState<string | null>(null);
+
+
     const getCookie = (name: string) => {
         return Cookies.get(name);
     }
@@ -94,6 +98,20 @@ function Friends() {
         } else {
             console.error('userData is null');
         }
+    };
+
+
+
+    const sendFriendRequest = (ID: number) => {
+        axios.post('/users/friend-requests/create', {user1id: parseInt(getCookie('userID')!), user2id: ID})
+            .then(response => {
+                console.log("Response submitted: " + response);
+                setStatusMessage("Success! Friend request sent. They must accept the request to become friends");
+            })
+            .catch(error => {
+                console.error("Error responding to friend request:", error);
+                setStatusMessage("OOOOOPS! There was an error");
+            });
     };
 
     const unAddFriend = (ID: number) => {
@@ -172,11 +190,31 @@ function Friends() {
                         <Col xs="12" lg="6">
                             <h1 className="fw-bold">Friend Management</h1>
                         </Col>
+
                         <Col xs="12" lg="3">
                             <h2 className="fw-bold fs-1 text-secondary text-center">{friendRequests ? friendRequests.length : 0} Requests</h2>
                         </Col>
                         <Col xs="12" lg="3">
                             <h2 className="fw-bold fs-1 text-secondary text-center">{userFriends ? userFriends.length : 0} Friends</h2>
+                        </Col>
+                    </Row>
+                </Container>
+                {statusMessage && (
+                    <div className={`alert ${statusMessage.includes('Error') ? 'alert-danger' : 'alert-success'} mt-3 alert-dismissible`} role='alert'>
+                        {statusMessage}
+                    </div>
+                )}
+                <Container>
+                    <Row>
+                        <Col xs={12} lg={6}>
+                            <div className="d-flex justify-content-center align-items-center">
+                               <SelectUserModal
+                                   openModalBttnText={"Add a friend"}
+                                   functionToExecute={sendFriendRequest}
+                                   submitBttnText={"Send Friend Request"}
+                                   titleText={"Send a friend request"}
+                               />
+                            </div>
                         </Col>
                     </Row>
                 </Container>

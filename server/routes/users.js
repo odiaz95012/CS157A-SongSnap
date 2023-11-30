@@ -249,17 +249,14 @@ router.post('/createAccount', async (req, res) => {
   }
 });
 
-
-
-
 router.get('/findUser', (req, res) => {
-  const searchTerm = req.query.searchTerm;
+  const searchTerm = `${req.query.searchTerm}%`;
 
   if (searchTerm) {
     const query = `
-      SELECT name, username, email
+      SELECT name, username, email, ID, ProfilePicture
       FROM users
-      WHERE username = ? OR email = ?
+      WHERE Email LIKE ? OR username LIKE ?
     `;
 
     connection.query(query, [searchTerm, searchTerm], (err, results) => {
@@ -281,7 +278,7 @@ router.get('/findUser', (req, res) => {
 
 router.post('/friend-requests/create', (req, res) => {
   const requestData = req.body;
-  if (requestData.user1id && requestData.user2id) {
+  if (requestData.user1id && requestData.user2id && requestData.user1id !== requestData.user2id) {
     // Check to see if an incoming request from the user already exists. if so, create the friendship right away.
     const check = "SELECT * FROM friends WHERE User1ID = ? AND User2ID = ? AND friends.Status = 'Pending'";
 
