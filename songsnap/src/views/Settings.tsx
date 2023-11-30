@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import NavBar from "../components/NavBar";
 import Cookies from 'js-cookie';
-import { Container } from "react-bootstrap";
+import { Container, Image } from "react-bootstrap";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import axios from 'axios';
@@ -22,6 +22,7 @@ interface User {
     Password: string;
     Role: string;
     name: string;
+    ProfilePicture: string;
 }
 
 interface UserForm {
@@ -267,7 +268,7 @@ function Settings() {
                     <div className='tab-pane fade show active' id='home-tab-pane' role='tabpanel' aria-labelledby='home-tab' tabIndex={0}>
                         <div className='row mt-4'>
                             <div className='col-12 col-lg-4 mb-4'>
-                                <img className='img-fluid square-img w-100' src='https://costionline.com/icons/profile-photos/4.webp' alt="profile image" />
+                                <Image src={userData?.ProfilePicture} thumbnail/>
                             </div>
                             <div className='col-12 col-lg-8'>
                                 {statusMessage && (

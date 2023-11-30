@@ -211,7 +211,7 @@ function Profile() {
                                 src={profileUser.ProfilePicture}
                                 className='profile-picture'
                                 thumbnail
-                                style={{ height: '150px', width: '150px' }}
+                                style={{ height: '150px', width: '150px', aspectRatio: '1/1', objectFit: 'cover' }}
                             />
                         )}
                     </Col>
@@ -228,7 +228,7 @@ function Profile() {
                                     src={loggedInUser?.ProfilePicture}
                                     className='profile-picture'
                                     thumbnail
-                                    style={{ height: '150px', width: '150px' }}
+                                    style={{ height: '150px', width: '150px', aspectRatio: '1/1', objectFit: 'cover' }}
                                 />
                             </Col>
                         </Row>

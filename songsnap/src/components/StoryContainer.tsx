@@ -158,6 +158,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
               src={story.profilePicture}
               alt="Profile Picture"
               className='profile-picture'
+              style={{aspectRatio: '1/1', objectFit: 'cover'}}
               roundedCircle
               onClick={() => navigateToProfile(story.UserID)}
             />
@@ -321,6 +322,7 @@ const StoriesContainer: React.FC<StoriesContainerProps> = ({ userDetails, contex
                   src={story.profilePicture}
                   alt={`Logo ${story.PostID}`}
                   roundedCircle
+                  style={{aspectRatio: '1/1', objectFit: 'cover'}}
                 />
               </div>
             ))}
