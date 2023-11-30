@@ -138,7 +138,7 @@ function Profile() {
         const profileButton = () => {
             function sendFriendRequest(ID: number | undefined) {
                 if (ID !== undefined) {
-                    axios.post('users/friend-requests/create', { "User1ID": loggedInUser?.ID, "User2ID": ID })
+                    axios.post('users/friend-requests/create', { "User1ID": parseInt(Cookies.get('userID')!), "User2ID": ID })
                         .then(response => {
                             console.log("Response submitted");
                         })
@@ -147,7 +147,23 @@ function Profile() {
                             // Handle errors accordingly
                         })
                         .finally(() => {
-                            renderHeader();
+                            fetchUserData();
+                        });
+                }
+            }
+
+            function removeFriend(ID: number | undefined) {
+                if (ID !== undefined) {
+                    axios.post('users/friends/remove', { "User1ID": parseInt(Cookies.get('userID')!), "User2ID": ID })
+                        .then(response => {
+                            console.log("Response submitted");
+                        })
+                        .catch(error => {
+                            console.error("Error responding to friend request:", error);
+                            // Handle errors accordingly
+                        })
+                        .finally(() => {
+                            fetchUserData();
                         });
                 }
             }
@@ -157,7 +173,7 @@ function Profile() {
                 return (<button type="button" className="btn btn-primary btn-sm me-2 disabled"><PersonCheckFill className='icon' /></button>);
             } else if(profileUserFriends.some((user) => user.User2ID === parseInt(Cookies.get('userID')!))) {
                 // Friends, display remove button
-                return (<button type="button" className="btn btn-primary btn-sm me-2" onClick={() => sendFriendRequest(profileUser?.ID)}><PersonCheckFill className='icon' /></button>); //TODO: make this remove friend
+                return (<button type="button" className="btn btn-primary btn-sm me-2" onClick={() => removeFriend(profileUser?.ID)}><PersonCheckFill className='icon' /></button>); //TODO: make this remove friend
             } else {
                 // Not friends, display add button
                 return (<button type="button" className="btn btn-secondary btn-sm me-2" onClick={() => sendFriendRequest(profileUser?.ID)}><PersonFillAdd className='icon' /></button>);
