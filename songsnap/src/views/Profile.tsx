@@ -7,7 +7,7 @@ import { useParams } from "react-router-dom";
 import Cookies from 'js-cookie';
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import { PersonCheckFill, Fire } from "react-bootstrap-icons";
+import {PersonCheckFill, PersonFillAdd, Fire} from "react-bootstrap-icons";
 import ProfileTabs from '../components/ProfileTabs';
 import StoriesContainer from '../components/StoryContainer';
 import StreaksContainer from '../components/StreaksContainer';
@@ -65,7 +65,6 @@ function Profile() {
 
 
     const fetchUserData = async () => {
-        // get user id from cookie
         // Fetch user data
         axios.get('/users/id?id=' + accountID)
             .then(response => {
@@ -128,27 +127,45 @@ function Profile() {
         const profileButton = () => {
             function sendFriendRequest(ID: number | undefined) {
                 if (ID !== undefined) {
-                    axios.post('users/friend-requests/create', { "User1ID": loggedInUser?.ID, "User2ID": ID })
+                    axios.post('/users/friend-requests/create', { "user1id": parseInt(Cookies.get('userID')!), "user2id": ID })
                         .then(response => {
                             console.log("Response submitted");
-                            // You might want to update the state or do something else upon success
                         })
                         .catch(error => {
                             console.error("Error responding to friend request:", error);
                             // Handle errors accordingly
                         })
                         .finally(() => {
-                            renderHeader();
+                            fetchUserData();
                         });
                 }
             }
 
-            if (profileUser?.ID === loggedInUser?.ID) {
+            function removeFriend(ID: number | undefined) {
+                if (ID !== undefined) {
+                    axios.post('/users/friends/remove', { "user1id": parseInt(Cookies.get('userID')!), "user2id": ID })
+                        .then(response => {
+                            console.log("Response submitted");
+                        })
+                        .catch(error => {
+                            console.error("Error responding to friend request:", error);
+                            // Handle errors accordingly
+                        })
+                        .finally(() => {
+                            fetchUserData();
+                        });
+                }
+            }
+
+            if (accountID === Cookies.get('userID')) {
+                // Self
                 return (<button type="button" className="btn btn-primary btn-sm me-2 disabled"><PersonCheckFill className='icon' /></button>);
-            } else if (false) {
-                //TODO: make it such that if the user already has this friend, it disables itself. Also if you do that, might as well add a friends counter as well
+            } else if(profileUserFriends.some((user) => user.User2ID === parseInt(Cookies.get('userID')!))) {
+                // Friends, display remove button
+                return (<button type="button" className="btn btn-primary btn-sm me-2" onClick={() => removeFriend(profileUser?.ID)}><PersonCheckFill className='icon' /></button>); //TODO: make this remove friend
             } else {
-                return (<button type="button" className="btn btn-primary btn-sm me-2" onClick={() => sendFriendRequest(profileUser?.ID)}><PersonCheckFill className='icon' /></button>);
+                // Not friends, display add button
+                return (<button type="button" className="btn btn-secondary btn-sm me-2" onClick={() => sendFriendRequest(profileUser?.ID)}><PersonFillAdd className='icon' /></button>);
             }
         };
 
