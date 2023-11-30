@@ -60,9 +60,32 @@ function ProfileTabs({ personalSongSnaps, pinnedSongSnaps, viewerAccountID }: Pr
                         currUserProfilePicture={songSnap.ProfilePicture}
                         pinned={isPinned} // for pinned songnsnaps only
                     />
+                    {viewerAccountID === Cookies.get('userID') ? (
+                        <div className='mt-5'>
+                            <button type='button' className='btn btn-danger' onClick={() => deleteSongSnap(songSnap.PostID)}>
+                                Delete SongSnap
+                            </button>
+                        </div>
+
+                    ) : null}
+
                 </div>
             );
         });
+    };
+
+    const deleteSongSnap = async (postID: number) => {
+        axios.delete('/posts/delete/songSnap', {
+            data: {
+                postID: postID
+            }
+        })
+            .then(() => {
+                window.location.reload();
+            })
+            .catch((error) => {
+                console.log("Error deleting song snap:", error);
+            });
     };
 
 
@@ -90,7 +113,7 @@ function ProfileTabs({ personalSongSnaps, pinnedSongSnaps, viewerAccountID }: Pr
                 // Generate content for "My Song Snaps" tab
                 const personalContent = generateTabView(personalSongSnaps, false);
                 setPersonalTabContent(personalContent);
-    
+
                 // Generate content for "Pinned Song Snaps" tab
                 const pinnedContent = generateTabView(pinnedSongSnaps, true);
                 setPinnedTabContent(pinnedContent);
@@ -106,10 +129,10 @@ function ProfileTabs({ personalSongSnaps, pinnedSongSnaps, viewerAccountID }: Pr
                 }
             }
         };
-    
+
         fetchData();
     }, [personalSongSnaps, pinnedSongSnaps, viewerAccountID]);
-    
+
 
     const handleTabChange = (selectedTab: string | null) => {
         if (selectedTab) {
@@ -147,7 +170,7 @@ function ProfileTabs({ personalSongSnaps, pinnedSongSnaps, viewerAccountID }: Pr
                     className="mb-3"
                     fill
                 >
-                    <Tab eventKey="userSongSnaps" title={userProfileSongSnaps.length > 0 ? `${userProfileSongSnaps[0].Username}'s SongSnaps`: 'User SongSnaps'} active>
+                    <Tab eventKey="userSongSnaps" title={userProfileSongSnaps.length > 0 ? `${userProfileSongSnaps[0].Username}'s SongSnaps` : 'User SongSnaps'} active>
                         {userProfileTabContent}
                     </Tab>
                 </Tabs>

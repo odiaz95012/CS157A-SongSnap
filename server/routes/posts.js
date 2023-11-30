@@ -280,6 +280,22 @@ router.get('/get/userPublicSongSnaps', (req, res) => {
   });
 });
 
+//delete a song snap
+router.delete('/delete/songSnap', (req, res) => {
+  const { postID } = req.body;
+  if (!postID) {
+    return res.status(400).send('Please provide the post ID.');
+  }
+  const deleteQuery = "DELETE FROM songsnaps WHERE PostID = ?";
+  connection.query(deleteQuery, [postID], (deleteErr) => {
+    if (deleteErr) {
+      console.log("Error deleting song snap:", deleteErr);
+      return res.status(500).send("Error deleting song snap");
+    }
+    return res.status(200).send("Song snap deleted successfully");
+  });
+});
+
 //Like a post
 router.post('/like', (req, res) => {
   const likeData = req.body;
