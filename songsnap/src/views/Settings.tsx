@@ -70,7 +70,7 @@ function Settings() {
         if (profilePicture) {
             editProfilePicture();
         }
-        if (formData.email.length > 0 || formData.username.length > 0 || formData.password.length > 0) {
+        if (formData.email.length > 0 || formData.username.length > 0 || formData.password.length > 0 || formData.name.length > 0) {
             console.log(formData);
             axios
                 .post('users/edit', formData)
