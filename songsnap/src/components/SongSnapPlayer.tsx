@@ -69,8 +69,10 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
   const like = async () => {
     axios.post('/posts/like', {
       postID: postID,
-      userID: await Cookies.get('userID')
-    }).then(async () => {
+      userID: await Cookies.get('userID'),
+      postType: 'songsnap'
+    }).then(async (response) => {
+      console.log(response);
       await getLikes();
     }).catch((error) => {
       console.log(error);
@@ -80,7 +82,8 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
   const unlike = async () => {
     axios.post('/posts/unlike', {
       postID: postID,
-      userID: await Cookies.get('userID')
+      userID: await Cookies.get('userID'),
+      postType: 'songsnap'
     }).then(async () => {
       await getLikes();
     }).catch((error) => {
@@ -91,7 +94,7 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
 
 
   const getLikes = async () => {
-    axios.get(`/posts/get/likes?postID=${postID}&userID=${await Cookies.get('userID')}`)
+    axios.get(`/posts/get/likes?postID=${postID}&userID=${await Cookies.get('userID')}&postType=songsnap`)
       .then((response) => {
         if (response.data) {
           setNumLikes(response.data.likeCount);
