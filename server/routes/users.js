@@ -352,7 +352,7 @@ router.get('/friend-requests/all', (req, res) => {
         if (results.length > 0) {
           return res.status(200).json(results);
         } else {
-          return res.status(404).json({ message: 'No friend requests at this time' });
+          return res.status(200).json({ friendRequests: [] });
         }
       }
     });
@@ -445,7 +445,7 @@ router.get('/friends/all', (req, res) => {
         if (results.length > 0) {
           return res.status(200).json(results);
         } else {
-          return res.status(200).json({ message: 'No friends on songsnap!' });
+          return res.status(200).json({ friends: [] });
         }
       }
     });
@@ -472,7 +472,7 @@ router.get('/blocked-users/all', (req, res) => {
         if (results.length > 0) {
           return res.status(200).json(results);
         } else {
-          return res.status(200).json({ message: 'No blocked users' });
+          return res.status(200).json({ blocked: [] });
         }
       }
     });
@@ -559,7 +559,7 @@ router.get('/activeStreak', (req, res) => {
       res.status(500).send("Error checking active streak");
     } else {
       res.status(200).json(results);
-      
+
     }
   });
 
