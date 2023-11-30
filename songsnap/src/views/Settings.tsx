@@ -65,7 +65,7 @@ function Settings() {
 
     // API Interaction
     const editUserDetails = () => {
-        if(profilePicture){
+        if (profilePicture) {
             editProfilePicture();
         }
         if (formData.email.length > 0 || formData.username.length > 0 || formData.password.length > 0) {
@@ -135,8 +135,8 @@ function Settings() {
         }
     };
 
-    
-    const unBlockUser = (ID:number) => {
+
+    const unBlockUser = (ID: number) => {
         if (userData) {
             const user1ID = userData.ID;
 
@@ -164,9 +164,9 @@ function Settings() {
         if (event.target.files && event.target.files.length > 0) {
             const file = event.target.files[0];
             const allowedExtensions = ['jpg', 'jpeg', 'png'];
-    
+
             const extension = file.name.split('.').pop()?.toLowerCase(); // Get the file extension
-    
+
             if (extension && allowedExtensions.includes(extension)) {
                 setProfilePicture(file);
             } else {
@@ -175,17 +175,17 @@ function Settings() {
             }
         }
     };
-    
+
 
 
     const editProfilePicture = async () => {
-        if(!profilePicture) {
+        if (!profilePicture) {
             console.error("No profile picture selected");
             return;
         }
         try {
             const userID = await getCookie('userID')!;
-            
+
             const formData = new FormData();
             formData.append('profilePicture', profilePicture);
             formData.append('username', userID); // Assuming username is actually userID
@@ -230,7 +230,11 @@ function Settings() {
         // Fetch blocked users
         axios.get('/users/blocked-users/all?id=' + userID)
             .then(response => {
-                setUserBlocked(response.data);
+                if (response.data[0].blocked) {
+                    setUserBlocked(response.data[0].blocked);
+                } else {
+                    setUserBlocked(response.data);
+                }
             })
             .catch(error => {
                 console.error("Error fetching blocked users:", error);

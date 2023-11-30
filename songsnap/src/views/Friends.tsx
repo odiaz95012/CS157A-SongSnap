@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import NavBar from "../components/NavBar";
 import Cookies from 'js-cookie';
-import {Container} from "react-bootstrap";
+import { Container } from "react-bootstrap";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import axios from 'axios';
-import {PersonCheckFill, PersonFillDash} from 'react-bootstrap-icons';
+import { PersonCheckFill, PersonFillDash } from 'react-bootstrap-icons';
 
 interface Friend {
     User1ID: number;
@@ -61,8 +61,7 @@ function Friends() {
         return userFriends.map((request, index) => (
             <div key={index} className="row bg-light rounded-2 py-2 mb-3">
                 <div className="col-10">
-                    <a href={'user/' + request.User1ID}><h3 className='fw-bold text-black fw-bold mb-0'>{request.name}</h3></a>
-                </div>
+                    <a href={'/profile/' + request.User2ID}><h3 className='fw-bold text-black fw-bold mb-0'>{request.name}</h3></a>                </div>
                 <div className="col-2">
                     <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => unAddFriend(request.User2ID)}><PersonFillDash className='icon' /></button>
                 </div>
@@ -97,7 +96,7 @@ function Friends() {
         }
     };
 
-    const unAddFriend = (ID:number) => {
+    const unAddFriend = (ID: number) => {
         if (userData) {
             const user1ID = userData.ID;
 
@@ -136,7 +135,11 @@ function Friends() {
         // Fetch friend requests
         axios.get('/users/friend-requests/all?id=' + userID)
             .then(response => {
-                setFriendRequests(response.data);
+                if (response.data[0].friendRequests) {
+                    setFriendRequests(response.data[0].friendRequests);
+                } else {
+                    setFriendRequests(response.data);
+                }
             })
             .catch(error => {
                 console.error("Error fetching friend requests:", error);
@@ -145,7 +148,11 @@ function Friends() {
         // Fetch user's friends
         axios.get('/users/friends/all?id=' + userID)
             .then(response => {
-                setUserFriends(response.data);
+                if (response.data[0].friends) {
+                    setUserFriends(response.data[0].friends);
+                } else {
+                    setUserFriends(response.data);
+                }
             })
             .catch(error => {
                 console.error("Error fetching user's friends:", error);
