@@ -31,7 +31,7 @@ function Login() {
         }).then((response) => {
             Cookies.set('userID', response.data.id);
             Cookies.set('username', response.data.username);
-            response.data.isAdmin ? Cookies.set('isAdmin', 'true') :  Cookies.set('isAdmin', 'false');
+            response.data.isAdmin ? Cookies.set('isAdmin', 'true') : Cookies.set('isAdmin', 'false');
             navigate('/home');
         }).catch((err) => {
             console.log(err);
@@ -66,6 +66,15 @@ function Login() {
 
     return (
         <div>
+            <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div className="container">
+                    <div className="d-flex align-items-center">
+                        <img className="me-1" src={require('../images/logo.png')} width="50" height="50" alt="SongSnap Logo" style={{ borderRadius: '50%' }} />
+                        <a className="navbar-brand" href="#">SongSnap</a>
+                    </div>
+                </div>
+            </nav>
+
             <div className="d-flex justify-content-center my-5">
                 <h1>Welcome to SongSnap</h1>
             </div>

@@ -350,8 +350,8 @@ router.get('/get/likes', (req, res) => {
       res.status(500).send("Error retrieving likes");
     } else {
       // Check if the given userID is in the results
-      const userIDsQuery = "SELECT UserID FROM likes WHERE PostID = ?";
-      connection.query(userIDsQuery, [postID], (err, userIDresults) => {
+      const userIDsQuery = "SELECT UserID FROM likes WHERE PostID = ? AND PostType = ?";
+      connection.query(userIDsQuery, [postID, postType], (err, userIDresults) => {
         if (err) {
           console.log("Error executing the query:" + err);
           res.status(500).send("Error retrieving the user ids for likes");
