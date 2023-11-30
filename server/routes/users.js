@@ -249,17 +249,14 @@ router.post('/createAccount', async (req, res) => {
   }
 });
 
-
-
-
 router.get('/findUser', (req, res) => {
-  const searchTerm = req.query.searchTerm;
+  const searchTerm = `${req.query.searchTerm}%`;
 
   if (searchTerm) {
     const query = `
       SELECT name, username, email
       FROM users
-      WHERE username = ? OR email = ?
+      WHERE Email LIKE ? OR username LIKE ?
     `;
 
     connection.query(query, [searchTerm, searchTerm], (err, results) => {
