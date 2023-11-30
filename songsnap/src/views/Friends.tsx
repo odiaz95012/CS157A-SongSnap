@@ -190,6 +190,7 @@ function Friends() {
                         <Col xs="12" lg="6">
                             <h1 className="fw-bold">Friend Management</h1>
                         </Col>
+
                         <Col xs="12" lg="3">
                             <h2 className="fw-bold fs-1 text-secondary text-center">{friendRequests ? friendRequests.length : 0} Requests</h2>
                         </Col>
