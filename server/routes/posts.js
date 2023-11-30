@@ -302,8 +302,8 @@ router.post('/like', (req, res) => {
   if (!likeData) {
     return res.status(400).send('No like data provided');
   }
-  const likeInsertQuery = "INSERT INTO likes (PostID, UserID) VALUES (?, ?)";
-  const likeValues = [likeData.postID, likeData.userID];
+  const likeInsertQuery = "INSERT INTO likes (PostID, UserID, PostType) VALUES (?, ?, ?)";
+  const likeValues = [likeData.postID, likeData.userID, likeData.postType];
 
   connection.query(likeInsertQuery, likeValues, (err) => {
     if (err) {
@@ -320,8 +320,8 @@ router.post('/unlike', (req, res) => {
   if (!likeData) {
     return res.status(400).send('No like data provided');
   }
-  const likeDeleteQuery = "DELETE FROM likes WHERE PostID = ? AND UserID = ?";
-  const likeValues = [likeData.postID, likeData.userID];
+  const likeDeleteQuery = "DELETE FROM likes WHERE PostID = ? AND UserID = ? AND PostType = ?";
+  const likeValues = [likeData.postID, likeData.userID, likeData.postType];
 
   connection.query(likeDeleteQuery, likeValues, (err) => {
     if (err) {
@@ -337,13 +337,14 @@ router.post('/unlike', (req, res) => {
 router.get('/get/likes', (req, res) => {
   const postID = req.query.postID;
   const userID = req.query.userID;
+  const postType = req.query.postType;
   const query = `
     SELECT COUNT(PostID) AS likeCount
     FROM likes 
-    WHERE PostID = ?
+    WHERE PostID = ? AND PostType = ?
     GROUP BY PostID;
   `;
-  connection.query(query, [postID], (err, likesResults) => {
+  connection.query(query, [postID, postType], (err, likesResults) => {
     if (err) {
       console.log("Error executing the query:" + err);
       res.status(500).send("Error retrieving likes");

@@ -86,9 +86,9 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
         const userID = await Cookies.get('userID');
         await axios.post('/posts/like', {
           postID: story.PostID,
-          userID: userID
-        });
-        await getLikes();
+          userID: userID,
+          postType: 'story'
+        }).then(async () => await getLikes());
       } catch (error) {
         console.log(error);
       }
@@ -104,9 +104,9 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
         const userID = await Cookies.get('userID');
         await axios.post('/posts/unlike', {
           postID: story.PostID,
-          userID: userID
-        });
-        await getLikes();
+          userID: userID,
+          postType: 'story'
+        }).then(async () => await getLikes());
       } catch (error) {
         console.log(error);
       }
@@ -125,7 +125,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
     if (story) {
       try {
         const userID = await Cookies.get('userID');
-        const response = await axios.get(`/posts/get/likes?postID=${story.PostID}&userID=${userID}`);
+        const response = await axios.get(`/posts/get/likes?postID=${story.PostID}&userID=${userID}&postType=story`);
 
         if (response.data) {
           setNumLikes(response.data.likeCount);
@@ -158,7 +158,7 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
               src={story.profilePicture}
               alt="Profile Picture"
               className='profile-picture'
-              style={{aspectRatio: '1/1', objectFit: 'cover'}}
+              style={{ aspectRatio: '1/1', objectFit: 'cover' }}
               roundedCircle
               onClick={() => navigateToProfile(story.UserID)}
             />
@@ -180,14 +180,11 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
                   </Row>
                   {story.UserID != currentUserId && (
                     <Row className="mt-2" >
-                      <Col md={12} style={{ width: '320px', height: '240px' }}>
-                        <Button variant='primary' className='like-btn me-1' onClick={handleLikeEvent} style={{ marginLeft: "-55px", width: '150px' }}>
-                          {isLiked ? (
-                            <HeartFill className='icon' />
-                          ) : (
-                            <Heart className='icon' />
-                          )}
-                        </Button>
+                      <Col md={12} style={{ width: '320px', height: '240px'}}>
+                        <a className={`like-btn me-1 ${isLiked ? 'liked' : ''}`} onClick={handleLikeEvent} style={{ marginLeft: "-55px", width: '150px', backgroundColor: 'rgba(22, 22, 24, 0.8)' }}>
+                          <HeartFill className='like-icon' />
+                        </a>
+                        
                       </Col>
                     </Row>
                   )}
@@ -298,7 +295,7 @@ const StoriesContainer: React.FC<StoriesContainerProps> = ({ userDetails, contex
     setShowModal(false);
   };
 
-  
+
 
 
   return (
@@ -322,7 +319,7 @@ const StoriesContainer: React.FC<StoriesContainerProps> = ({ userDetails, contex
                   src={story.profilePicture}
                   alt={`Logo ${story.PostID}`}
                   roundedCircle
-                  style={{aspectRatio: '1/1', objectFit: 'cover'}}
+                  style={{ aspectRatio: '1/1', objectFit: 'cover' }}
                 />
               </div>
             ))}
