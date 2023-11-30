@@ -160,7 +160,7 @@ function Profile() {
             if (accountID === Cookies.get('userID')) {
                 // Self
                 return (<button type="button" className="btn btn-primary btn-sm me-2 disabled"><PersonCheckFill className='icon' /></button>);
-            } else if(profileUserFriends.some((user) => user.User2ID === parseInt(Cookies.get('userID')!))) {
+            } else if(profileUserFriends.length > 0 && profileUserFriends.some((user) => user.User2ID === parseInt(Cookies.get('userID')!))) {
                 // Friends, display remove button
                 return (<button type="button" className="btn btn-primary btn-sm me-2" onClick={() => removeFriend(profileUser?.ID)}><PersonCheckFill className='icon' /></button>); //TODO: make this remove friend
             } else {
