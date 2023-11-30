@@ -613,9 +613,8 @@ const checkDailyStreaks = (callback) => {
 
     const moment = require('moment-timezone');
     const todayPacific = moment().tz('America/Los_Angeles');
-    const yesterday = todayPacific.format('YYYY-MM-DD HH:mm:ss');
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayDate = yesterday.toISOString().split('T')[0];
+    const yesterday = todayPacific.clone().subtract(1, 'day');
+    yesterdayDate = yesterday.format('YYYY-MM-DD');
 
     for (const streak of activeStreaks) {
       const userID = streak.UserID;

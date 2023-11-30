@@ -180,11 +180,11 @@ const StoryModal: React.FC<StoryModalProps> = ({ show, handleClose, story }) => 
                   </Row>
                   {story.UserID != currentUserId && (
                     <Row className="mt-2" >
-                      <Col md={12} style={{ width: '320px', height: '240px'}}>
+                      <Col md={12} style={{ width: '320px', height: '240px' }}>
                         <a className={`like-btn me-1 ${isLiked ? 'liked' : ''}`} onClick={handleLikeEvent} style={{ marginLeft: "-55px", width: '150px', backgroundColor: 'rgba(22, 22, 24, 0.8)' }}>
                           <HeartFill className='like-icon' />
                         </a>
-                        
+
                       </Col>
                     </Row>
                   )}
@@ -296,13 +296,15 @@ const StoriesContainer: React.FC<StoriesContainerProps> = ({ userDetails, contex
   };
 
 
-
+  const textStyle: React.CSSProperties = {
+    textAlign: context === 'home' ? 'left' : 'center',
+  };
 
   return (
     <div className="container mt-3">
-      <div className="d-flex justify-content-start">
-        <h3>{context === 'home' ? 'Stories' : 'My Stories'}</h3>
-      </div>
+        <h3 style={textStyle}>
+          {context === 'home' ? 'Stories' : 'My Story Archive'}
+        </h3>
       <div className="scrolling-container d-flex justify-content-center">
         {stories.length === 0 ? (
           <div className="no-stories-message lead mt-2">No stories yet :(</div>
