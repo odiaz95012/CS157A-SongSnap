@@ -65,11 +65,20 @@ function Home() {
         }
     };
 
+    interface Prompt {
+        ID: number;
+        PromptText: string;
+        Theme: string;
+    }
+
 
 
     const postSongSnap = async (backgroundTheme: string, caption: string, visibility: string, songName: string, artistName: string, userDetails: User) => {
         const userID = await getCookie('userID');
         const songID = await getSongID(songName, artistName);
+        const dailyPrompt: Prompt | null = JSON.parse(localStorage.getItem('dailyPrompt') || 'null');
+        const promptID = dailyPrompt?.ID;
+
         if (userID && songID) {
             axios.post('/posts/create/songSnap', {
                 songID: songID,
@@ -77,7 +86,7 @@ function Home() {
                 theme: backgroundTheme,
                 visibility: visibility,
                 userID: userID,
-                promptID: 1
+                promptID: promptID
             })
                 .then(async (response) => {
                     if (visibility === 'public') { // post songsnap to main feed
@@ -188,11 +197,7 @@ function Home() {
         ID: number;
     }
 
-    interface Prompt {
-        ID: number;
-        PromptText: string;
-        Theme: string;
-    }
+
 
 
 
@@ -293,7 +298,7 @@ function Home() {
                 </div>
             </header>
             {/* Stories Container */}
-            <StoriesContainer userDetails={currUserDetails} context={'home'}/>
+            <StoriesContainer userDetails={currUserDetails} context={'home'} />
 
             {/* Feed Container */}
             <div className="d-flex-1 text-center justify-content-center align-items-center mt-3">
@@ -307,10 +312,10 @@ function Home() {
                         <nav className="navbar navbar-expand-lg navbar-light justify-content-center">
                             <ul className="navbar-nav">
                                 <li className="nav-item">
-                                    <a className={`nav-link ${activeView === 'main-feed' ? 'active' : ''}`} href="#main-feed" onClick={() => handleActiveFeedChange('main-feed')}>Main Feed</a>
+                                    <a className={`nav-link fs-5 ${activeView === 'main-feed' ? 'active' : ''}`} href="#main-feed" onClick={() => handleActiveFeedChange('main-feed')}>Main Feed</a>
                                 </li>
                                 <li className="nav-item">
-                                    <a className={`nav-link ${activeView === 'friends-feed' ? 'active' : ''}`} href="#friends-feed" onClick={() => handleActiveFeedChange('friends-feed')}>Friends Feed</a>
+                                    <a className={`nav-link fs-5 ${activeView === 'friends-feed' ? 'active' : ''}`} href="#friends-feed" onClick={() => handleActiveFeedChange('friends-feed')}>Friends Feed</a>
                                 </li>
                             </ul>
                         </nav>

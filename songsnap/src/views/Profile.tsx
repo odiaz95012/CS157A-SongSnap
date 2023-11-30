@@ -121,19 +121,8 @@ function Profile() {
             await fetchUserData();
         }
         fetchData();
-        console.log('Logged in User ID: ' + loggedInUser?.ID);
-        console.log('account ID: ' + accountID);
     }, []);
 
-    const getPublicSongSnaps = async () => {
-        axios.get('/posts/get/userPublicSongSnaps/?userID=' + accountID)
-            .then(response => {
-                console.log(response.data);
-            })
-            .catch(error => {
-                console.error("Error fetching user public song snaps:", error);
-            });
-    };
 
     const renderHeader = () => {
         const profileButton = () => {
