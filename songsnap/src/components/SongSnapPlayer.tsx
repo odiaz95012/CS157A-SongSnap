@@ -198,6 +198,7 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
                       className='profile-picture'
                       onClick={() => navigateToProfile(user.ID)}
                       roundedCircle
+                      style={{aspectRatio: '1/1', objectFit: 'cover'}}
                     />
                   </div>
                 </Col>
