@@ -138,7 +138,7 @@ function Profile() {
         const profileButton = () => {
             function sendFriendRequest(ID: number | undefined) {
                 if (ID !== undefined) {
-                    axios.post('users/friend-requests/create', { "User1ID": parseInt(Cookies.get('userID')!), "User2ID": ID })
+                    axios.post('/users/friend-requests/create', { "user1id": parseInt(Cookies.get('userID')!), "user2id": ID })
                         .then(response => {
                             console.log("Response submitted");
                         })
@@ -154,7 +154,7 @@ function Profile() {
 
             function removeFriend(ID: number | undefined) {
                 if (ID !== undefined) {
-                    axios.post('users/friends/remove', { "User1ID": parseInt(Cookies.get('userID')!), "User2ID": ID })
+                    axios.post('/users/friends/remove', { "user1id": parseInt(Cookies.get('userID')!), "user2id": ID })
                         .then(response => {
                             console.log("Response submitted");
                         })
