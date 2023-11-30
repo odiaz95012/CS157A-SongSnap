@@ -208,7 +208,12 @@ function Friends() {
                     <Row>
                         <Col xs={12} lg={6}>
                             <div className="d-flex justify-content-center align-items-center">
-                               <SelectUserModal functionToExecute={sendFriendRequest}/>
+                               <SelectUserModal
+                                   openModalBttnText={"Add a friend"}
+                                   functionToExecute={sendFriendRequest}
+                                   submitBttnText={"Send Friend Request"}
+                                   titleText={"Send a friend request"}
+                               />
                             </div>
                         </Col>
                     </Row>

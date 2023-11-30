@@ -3,6 +3,7 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import { Search } from 'react-bootstrap-icons';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 interface User {
     ID: number;
@@ -12,10 +13,13 @@ interface User {
     ProfilePicture: string;
 }
 interface SelectUserModalProps{
+    openModalBttnText: string;
     functionToExecute: (id:number) => void;
+    submitBttnText: string;
+    titleText: string;
 }
 
-function SelectUserModal({ functionToExecute}: SelectUserModalProps) : JSX.Element{
+function SelectUserModal({ openModalBttnText, functionToExecute, submitBttnText, titleText}: SelectUserModalProps) : JSX.Element{
     const [show, setShow] = useState(false);
     const [searchInput, setSearchInput] = useState<string>('');
     const [searchResults, setSearchResults] = useState<User[]>([]);
@@ -55,12 +59,12 @@ function SelectUserModal({ functionToExecute}: SelectUserModalProps) : JSX.Eleme
     return (
         <>
             <Button variant="primary" onClick={handleShow}>
-                Add a friend
+                {openModalBttnText}
             </Button>
 
             <Modal show={show} onHide={handleClose}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Send a friend request</Modal.Title>
+                    <Modal.Title>{titleText}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className="input-group mb-3">
@@ -71,7 +75,9 @@ function SelectUserModal({ functionToExecute}: SelectUserModalProps) : JSX.Eleme
                     <div>
                         <ul className="list-group">
                             {searchResults.length > 0 && (
-                                searchResults.map((user, index) => (
+                                searchResults
+                                    .filter(user => user.ID !== parseInt(Cookies.get('userID') || '0')) // Exclude current user
+                                    .map((user, index) => (
                                     <li key={index} className="list-group-item p-3 d-flex align-items-center">
                                         <input className="form-check-input me-1" type="radio" name="listGroupRadio" value={user.ID} id={`radio-${index}`} onChange={() => handleSelection(user.ID)}/>
                                         <label className="form-check-label ms-3" htmlFor={`radio-${index}`}>
@@ -97,7 +103,7 @@ function SelectUserModal({ functionToExecute}: SelectUserModalProps) : JSX.Eleme
                         Close
                     </Button>
                     <Button variant="primary" onClick={() => executeRequest(selectedUserID)}>
-                        Send Friend Request
+                        {submitBttnText}
                     </Button>
                 </Modal.Footer>
             </Modal>
