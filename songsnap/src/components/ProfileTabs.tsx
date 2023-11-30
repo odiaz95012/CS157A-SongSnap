@@ -60,7 +60,7 @@ function ProfileTabs({ personalSongSnaps, pinnedSongSnaps, viewerAccountID }: Pr
                         currUserProfilePicture={songSnap.ProfilePicture}
                         pinned={isPinned} // for pinned songnsnaps only
                     />
-                    {viewerAccountID === Cookies.get('userID') ? (
+                    {viewerAccountID === Cookies.get('userID') && songSnap.UserID.toString() === Cookies.get('userID') ? (
                         <div className='mt-5'>
                             <button type='button' className='btn btn-danger' onClick={() => deleteSongSnap(songSnap.PostID)}>
                                 Delete SongSnap
