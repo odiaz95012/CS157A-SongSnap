@@ -7,7 +7,7 @@ import { useParams } from "react-router-dom";
 import Cookies from 'js-cookie';
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import {PersonCheckFill, PersonFillAdd, Fire} from "react-bootstrap-icons";
+import { PersonCheckFill, PersonFillAdd, Fire } from "react-bootstrap-icons";
 import ProfileTabs from '../components/ProfileTabs';
 import StoriesContainer from '../components/StoryContainer';
 import StreaksContainer from '../components/StreaksContainer';
@@ -51,6 +51,7 @@ interface SongSnap {
     Username: string;
     name: string;
     ProfilePicture: string;
+    Date: string;
 }
 
 
@@ -160,7 +161,7 @@ function Profile() {
             if (accountID === Cookies.get('userID')) {
                 // Self
                 return (<button type="button" className="btn btn-primary btn-sm me-2 disabled"><PersonCheckFill className='icon' /></button>);
-            } else if(profileUserFriends.length > 0 && profileUserFriends.some((user) => user.User2ID === parseInt(Cookies.get('userID')!))) {
+            } else if (profileUserFriends.length > 0 && profileUserFriends.some((user) => user.User2ID === parseInt(Cookies.get('userID')!))) {
                 // Friends, display remove button
                 return (<button type="button" className="btn btn-primary btn-sm me-2" onClick={() => removeFriend(profileUser?.ID)}><PersonCheckFill className='icon' /></button>); //TODO: make this remove friend
             } else {
@@ -182,7 +183,9 @@ function Profile() {
                         <p className='text-secondary'>{profileUser.Username} {accountID === Cookies.get('userID') ? <Badge color="primary">You</Badge> : ''}</p>
                     </Col>
                     <Col sm={6} md={3}>
-                        <h1 className='fw-bold text-center'>{profileUserFriends.length} Friends</h1>
+                        <h1 className='fw-bold text-center'>
+                            {profileUserFriends.length > 0 ? `${profileUserFriends.length} Friends` : '0 Friends'}
+                        </h1>
                         <h1 className='fw-bold text-center'>{profileUserPosts.length} Posts</h1>
                     </Col>
                     <Col sm={6} md={3} className='text-end'>

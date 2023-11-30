@@ -44,7 +44,7 @@ function Home() {
     };
 
 
-    const generatePlayer = async (backgroundTheme: string, caption: string, songID: number, userDetails: User, postID: number): Promise<JSX.Element | void> => {
+    const generatePlayer = async (backgroundTheme: string, caption: string, songID: number, userDetails: User, postID: number, date: string): Promise<JSX.Element | void> => {
         try {
             if (songID) {
                 const player = <SongSnapPlayer
@@ -56,6 +56,7 @@ function Home() {
                     postID={postID}
                     ownerUserID={userDetails.ID}
                     currUserProfilePicture={userDetails.ProfilePicture}
+                    datePosted={date}
                 />;
 
 
@@ -95,7 +96,7 @@ function Home() {
                         setFriendsFeedSongSnaps([response.data, ...friendsFeedSongSnaps]);
                     }
                     const postID = response.data.PostID;
-                    await generateSongSnap(backgroundTheme, caption, songID, userDetails, postID);
+                    await generateSongSnap(backgroundTheme, caption, songID, userDetails, postID, new Date().toISOString());
                     window.location.reload();
                 })
                 .catch((error) => {
@@ -106,8 +107,8 @@ function Home() {
         }
     };
 
-    const generateSongSnap = (backgroundTheme: string, caption: string, songID: number, userDetails: User, postID: number) => {
-        generatePlayer(backgroundTheme, caption, songID, userDetails, postID);
+    const generateSongSnap = (backgroundTheme: string, caption: string, songID: number, userDetails: User, postID: number, date:string) => {
+        generatePlayer(backgroundTheme, caption, songID, userDetails, postID, date);
     };
 
     interface SongSnapInputData {
@@ -147,6 +148,7 @@ function Home() {
         Username: string;
         name: string;
         ProfilePicture: string;
+        Date: string;
     }
     const [mainFeedSongSnaps, setMainFeedSongSnaps] = useState<SongSnap[]>([]);
     const [friendsFeedSongSnaps, setFriendsFeedSongSnaps] = useState<SongSnap[]>([]);
@@ -257,6 +259,7 @@ function Home() {
                         postID={songSnap.PostID}
                         ownerUserID={songSnap.UserID}
                         currUserProfilePicture={currUserDetails.ProfilePicture}
+                        datePosted={songSnap.Date}
                     />
                 </div>
             );

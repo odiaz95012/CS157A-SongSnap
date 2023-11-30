@@ -134,10 +134,10 @@
 .caption-container {
     background-color: rgba(22, 22, 24, 0.9);
     color: white;
-    width: 100%;
+    min-width: 100%;
     margin-left: 10px;
-    min-height: 35px;
-    border-radius: 25px;
+    max-height: fit-content;
+    border-radius: 5px;
     text-align: center;
 }
 
