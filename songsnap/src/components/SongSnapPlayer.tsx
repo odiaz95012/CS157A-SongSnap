@@ -22,11 +22,12 @@ interface DzPlayerProps {
   ownerUserID: number;
   currUserProfilePicture: string;
   pinned?: boolean;
+  datePosted: string;
 }
 
 
 
-const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTheme, caption, user, postID, ownerUserID, currUserProfilePicture, pinned }) => {
+const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTheme, caption, user, postID, ownerUserID, currUserProfilePicture, pinned, datePosted }) => {
 
   interface Comment {
     Text: string;
@@ -168,6 +169,34 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
     fetchData();
   }, [trackID, dztype]);
 
+  const formatDate = (inputDate: string): string => {
+    const date = new Date(inputDate);
+    const now = new Date();
+
+    const isToday = date.getDate() === now.getDate() &&
+      date.getMonth() === now.getMonth() &&
+      date.getFullYear() === now.getFullYear();
+
+    if (isToday) {
+      const hours = date.getHours();
+      const minutes = date.getMinutes();
+      const seconds = date.getSeconds();
+
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const adjustedHours = hours % 12 || 12; // Convert 0 to 12
+
+      const formattedTime = `${adjustedHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${period}`;
+
+      return formattedTime;
+    } else {
+      const day = date.getDate();
+      const month = date.getMonth() + 1;
+      const year = date.getFullYear() % 100;
+      const formattedDate = `${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}/${year.toString().padStart(2, '0')}`;
+      return formattedDate;
+    }
+  };
+
   return (
     <div className='container text-center'>
       {backgroundTheme && (
@@ -193,18 +222,7 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
                     <span className="form-label like-count">: {numLikes}</span>
                   </div>
                 </Col>
-                <Col>
-                  <div className='profile-picture-container'>
-                    <Image
-                      src={user.ProfilePicture}
-                      alt="Profile Picture"
-                      className='profile-picture'
-                      onClick={() => navigateToProfile(user.ID)}
-                      roundedCircle
-                      style={{aspectRatio: '1/1', objectFit: 'cover'}}
-                    />
-                  </div>
-                </Col>
+
               </Row>
               <Row>
                 <Col md={4}>
@@ -242,10 +260,33 @@ const SongSnapPlayer: React.FC<DzPlayerProps> = ({ dztype, trackID, backgroundTh
                 <Col xs={4} md={12}>
                   <div className='caption-container'>
                     <div className='caption-content'>
-                      <p>{user.Username}: {caption}</p>
+                      <div className='d-flex'>
+                        <img
+                          src={user.ProfilePicture}
+                          alt="Profile Picture"
+                          width="50px"
+                          height="50px"
+                          className='my-2 profile-picture'
+                          onClick={() => navigateToProfile(user.ID)}
+                          style={{ borderRadius: '50%', aspectRatio: '1/1', objectFit: 'cover' }}
+                        />
+                      </div>
+                      <div className="ms-1">
+                        <div>
+                          <p className="mb-0 text-start">
+                            <span className="me-2">{user.Username}</span>
+                            <small className="text-white-50">{formatDate(datePosted)}</small>
+                          </p>
+                        </div>
+                        <div>
+                          <p className="lead text-start px-3">{caption}</p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </Col>
+
+
               </Row>
             </>
           ) : (

@@ -16,6 +16,7 @@ interface SongSnap {
     Username: string;
     name: string;
     ProfilePicture: string;
+    Date:string;
 }
 
 interface SongSnapUserData {
@@ -59,6 +60,7 @@ function ProfileTabs({ personalSongSnaps, pinnedSongSnaps, viewerAccountID }: Pr
                         ownerUserID={songSnap.UserID}
                         currUserProfilePicture={songSnap.ProfilePicture}
                         pinned={isPinned} // for pinned songnsnaps only
+                        datePosted={songSnap.Date}
                     />
                     {viewerAccountID === Cookies.get('userID') && songSnap.UserID.toString() === Cookies.get('userID') ? (
                         <div className='mt-5'>
