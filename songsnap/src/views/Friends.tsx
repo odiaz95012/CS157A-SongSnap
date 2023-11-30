@@ -106,11 +106,11 @@ function Friends() {
         axios.post('/users/friend-requests/create', {user1id: parseInt(getCookie('userID')!), user2id: ID})
             .then(response => {
                 console.log("Response submitted: " + response);
-                setStatusMessage("Success!");
+                setStatusMessage("Success! Friend request sent. They must accept the request to become friends");
             })
             .catch(error => {
                 console.error("Error responding to friend request:", error);
-                // Handle errors accordingly
+                setStatusMessage("OOOOOPS! There was an error");
             });
     };
 
