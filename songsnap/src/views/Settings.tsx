@@ -34,8 +34,6 @@ interface UserForm {
 
 function Settings() {
     const [userData, setUserData] = useState<User | null>(null);
-    const [friendRequests, setFriendRequests] = useState<Friend[]>([]);
-    const [userFriends, setUserFriends] = useState<Friend[]>([]);
     const [userBlocked, setUserBlocked] = useState<Friend[]>([]);
     const [profilePicture, setProfilePicture] = useState<File | null>(null);
     const [formData, setFormData] = useState<UserForm>({
@@ -52,35 +50,6 @@ function Settings() {
     }
 
     // Rendering
-    const renderFriendRequests = () => {
-        return friendRequests.map((request, index) => (
-            <div key={index} className="row bg-light rounded-2 py-2 mb-3">
-                <div className="col-8">
-                    <a href={'user/' + request.User1ID}><h3 className='fw-bold text-black fw-bold mb-0'>{request.name}</h3></a>
-                </div>
-                <div className="col-2">
-                    <button type="button" className="btn btn-primary btn-sm me-2" onClick={() => respondFriendRequest(request.User1ID, "Accepted")}><PersonCheckFill className='icon' /></button>
-                </div>
-                <div className="col-2">
-                    <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => respondFriendRequest(request.User1ID, "Rejected")}><PersonFillDash className='icon' /></button>
-                </div>
-            </div>
-        ));
-    };
-
-    const renderFriends = () => {
-        return userFriends.map((request, index) => (
-            <div key={index} className="row bg-light rounded-2 py-2 mb-3">
-                <div className="col-10">
-                    <a href={'user/' + request.User1ID}><h3 className='fw-bold text-black fw-bold mb-0'>{request.name}</h3></a>
-                </div>
-                <div className="col-2">
-                    <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => unAddFriend(request.User2ID)}><PersonFillDash className='icon' /></button>
-                </div>
-            </div>
-        ));
-    };
-
     const renderBlockedUsers = () => {
         return userBlocked.map((user, index) => (
             <div key={index} className="row bg-light rounded-2 py-2 mb-3">
@@ -166,7 +135,8 @@ function Settings() {
         }
     };
 
-    const unBlockUser = (ID: number) => {
+    
+    const unBlockUser = (ID:number) => {
         if (userData) {
             const user1ID = userData.ID;
 
@@ -257,23 +227,6 @@ function Settings() {
                 console.error("Error fetching user data:", error);
             });
 
-        // Fetch friend requests
-        axios.get('/users/friend-requests/all?id=' + userID)
-            .then(response => {
-                setFriendRequests(response.data);
-            })
-            .catch(error => {
-                console.error("Error fetching friend requests:", error);
-            });
-
-        // Fetch user's friends
-        axios.get('/users/friends/all?id=' + userID)
-            .then(response => {
-                setUserFriends(response.data);
-            })
-            .catch(error => {
-                console.error("Error fetching user's friends:", error);
-            });
         // Fetch blocked users
         axios.get('/users/blocked-users/all?id=' + userID)
             .then(response => {
@@ -302,9 +255,6 @@ function Settings() {
                     {/*<li className='nav-item' role='presentation'>*/}
                     {/*    <button className='nav-link' id='profile-tab' data-bs-toggle='tab' data-bs-target='#profile-tab-pane' type='button' role='tab' aria-controls='profile-tab-pane' aria-selected='false'>Profile</button>*/}
                     {/*</li>*/}
-                    <li className='nav-item' role='presentation'>
-                        <button className='nav-link' id='friends-tab' data-bs-toggle='tab' data-bs-target='#friends-tab-pane' type='button' role='tab' aria-controls='friends-tab-pane' aria-selected='false'>Friends</button>
-                    </li>
                     <li className='nav-item' role='presentation'>
                         <button className='nav-link' id='blocked-tab' data-bs-toggle='tab' data-bs-target='#blocked-tab-pane' type='button' role='tab' aria-controls='blocked-tab-pane' aria-selected='false'>Blocked</button>
                     </li>
@@ -351,33 +301,6 @@ function Settings() {
                         </div>
                     </div>
                     {/*<div className='tab-pane fade' id='profile-tab-pane' role='tabpanel' aria-labelledby='profile-tab' tabIndex={0}>2</div>*/}
-                    <div className='tab-pane fade' id='friends-tab-pane' role='tabpanel' aria-labelledby='friends-tab' tabIndex={0}>
-                        <Container className="bg-light rounded-4 p-3 mt-3">
-                            <Row>
-                                <Col xs="12" lg="6">
-                                    <h1 className="fw-bold">Friend Management</h1>
-                                </Col>
-                                <Col xs="12" lg="3">
-                                    <h2 className="fw-bold fs-1 text-secondary text-center">{friendRequests ? friendRequests.length : 0} Requests</h2>
-                                </Col>
-                                <Col xs="12" lg="3">
-                                    <h2 className="fw-bold fs-1 text-secondary text-center">{userFriends ? userFriends.length : 0} Friends</h2>
-                                </Col>
-                            </Row>
-                        </Container>
-                        <Container className="mt-4">
-                            <Row>
-                                <Col xs={12} lg={6} className='px-3'>
-                                    <h4 className="fw-bold text-center">Requests</h4>
-                                    {renderFriendRequests()}
-                                </Col>
-                                <Col xs={12} lg={6} className='px-3'>
-                                    <h4 className="fw-bold text-center">Friends</h4>
-                                    {renderFriends()}
-                                </Col>
-                            </Row>
-                        </Container>
-                    </div>
                     <div className='tab-pane fade' id='blocked-tab-pane' role='tabpanel' aria-labelledby='blocked-tab' tabIndex={0}>
                         <Container className="bg-light rounded-4 p-3 mt-3">
                             <Row>

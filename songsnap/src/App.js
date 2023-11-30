@@ -9,6 +9,7 @@ import Profile from "./views/Profile";
 import AdminPage from "./views/AdminPage";
 import AdminRoute from "./components/AdminRoute";
 import Cookies from 'js-cookie';
+import Friends from "./views/Friends";
 
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
         <Route path="/registration" element={<Registration/>}/>
         <Route path="/home" element={<Home/>}/>
         <Route path="/settings" element={<Settings/>}/>
+        <Route path="/friends" element={<Friends/>}/>
         <Route path="/profile/:accountID" element={<Profile/>}/>
         <Route element={<AdminRoute/>}>
           <Route path="/admin" element={<AdminPage/>}/>

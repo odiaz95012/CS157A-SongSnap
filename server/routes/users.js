@@ -513,6 +513,23 @@ router.post('/blocked-users/create', (req, res) => {
   }
 });
 
+router.post('/blocked-users/remove', (req, res) => {
+  const requestData = req.body;
+  if (requestData.user1id && requestData.user2id) {
+    const query = "DELETE FROM blocked WHERE User1ID = ? AND User2ID = ?";
+    connection.query(query, [requestData.user1id, requestData.user2id], (err) => {
+      if (err) {
+        console.log("Error executing the query: " + err);
+        return res.status(500).json({ error: 'OO0OPS! Something happened :(' });
+      } else {
+        return res.status(200).json({ message: "User unblocked" });
+      }
+    });
+  } else {
+    return res.status(400).json({ error: 'Invalid data format' });
+  }
+});
+
 //Streaks
 
 router.get('/streaks', (req, res) => {
