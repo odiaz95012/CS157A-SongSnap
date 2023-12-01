@@ -30,7 +30,7 @@ router.post('/create/songSnap', (req, res) => {
           return res.status(500).send("Error posting the songsnap to the posts table.");
         }
 
-        const alreadyPostedQuery = `SELECT * FROM songsnaps WHERE UserID = ${userID} AND DATE(date) = CURDATE()`;
+        const alreadyPostedQuery = `SELECT * FROM songsnaps WHERE UserID = ${userID} AND DATE(CONVERT_TZ(date, "UTC", "America/Los_Angeles")) = DATE(CONVERT_TZ(CURDATE(), "UTC", "America/Los_Angeles"))`;
 
         connection.query(alreadyPostedQuery, (err, postedResults) => {
           if (err) {
