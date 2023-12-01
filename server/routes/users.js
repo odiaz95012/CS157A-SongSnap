@@ -618,7 +618,7 @@ const checkDailyStreaks = (callback) => {
 
     for (const streak of activeStreaks) {
       const userID = streak.UserID;
-      connection.query('SELECT * FROM songsnaps WHERE UserID = ? AND DATE(date) = ?', [userID, yesterdayDate], (err, result) => {
+      connection.query('SELECT * FROM songsnaps WHERE UserID = ? AND DATE(CONVERT_TZ(date, "UTC", "America/Los_Angeles")) = ?', [userID, yesterdayDate], (err, result) => {
         if (err) {
           console.error("Error executing the query:", err);
           callback(err);
